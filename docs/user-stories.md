@@ -4,19 +4,19 @@
 
 ## Backlog summary
 
-| ID    | User Story (summary)                   | Profile         | Priority | Requirements   | MVP |
-|-------|----------------------------------------|-----------------|----------|----------------|-----|
-| US-01 | Log in and log out                     | User            | M | FR-01, FR-02, NFR-04 | Yes |
-| US-02 | Create and deactivate user accounts    | Administrator   | M | FR-03, FR-04   | Yes |
-| US-03 | Create a project                       | User            | M | FR-10, FR-13   | Yes |
-| US-04 | Manage project members                 | Project Manager | M | FR-12, FR-24   | Yes |
-| US-05 | Create a task                          | Team Member     | M | FR-20, FR-22, FR-24, FR-26 | Yes |
-| US-06 | Change a task's status on the board    | Team Member     | M | FR-23, FR-30   | Yes |
-| US-07 | View a project's progress              | Team Member     | M | FR-31          | Yes |
-| US-08 | Delete a task                          | Project Manager | M | FR-25          | Yes |
-| US-09 | Filter a project's tasks               | Team Member     | S | FR-32          | Post-MVP |
-| US-10 | View "My tasks"                        | Team Member     | S | FR-33          | Post-MVP |
-| US-11 | Archive a project                      | Project Manager | S | FR-14          | Post-MVP |
+| ID    | User Story (summary)                | Profile         | Priority | Requirements               | MVP      |
+| ----- | ----------------------------------- | --------------- | -------- | -------------------------- | -------- |
+| US-01 | Log in and log out                  | User            | M        | FR-01, FR-02, NFR-04       | Yes      |
+| US-02 | Create and deactivate user accounts | Administrator   | M        | FR-03, FR-04               | Yes      |
+| US-03 | Create a project                    | User            | M        | FR-10, FR-13               | Yes      |
+| US-04 | Manage project members              | Project Manager | M        | FR-12, FR-24               | Yes      |
+| US-05 | Create a task                       | Team Member     | M        | FR-20, FR-22, FR-24, FR-26 | Yes      |
+| US-06 | Change a task's status on the board | Team Member     | M        | FR-23, FR-30               | Yes      |
+| US-07 | View a project's progress           | Team Member     | M        | FR-31                      | Yes      |
+| US-08 | Delete a task                       | Project Manager | M        | FR-25                      | Yes      |
+| US-09 | Filter a project's tasks            | Team Member     | S        | FR-32                      | Post-MVP |
+| US-10 | View "My tasks"                     | Team Member     | S        | FR-33                      | Post-MVP |
+| US-11 | Archive a project                   | Project Manager | S        | FR-14                      | Post-MVP |
 
 ---
 
@@ -130,14 +130,14 @@
 
 ## Exceptional and edge cases
 
-| ID    | Situation | Expected behaviour | US |
-|-------|-----------|--------------------|----|
-| EC-01 | Two members edit the same task almost simultaneously. | Last write wins; no data is corrupted. *(Conflict strategy to be confirmed in Class 2.)* | US-06 |
-| EC-02 | A task assignee is removed from the project. | The tasks become unassigned. | US-04 |
-| EC-03 | The assignee's account is deactivated. | Tasks keep the assignee, shown as "(deactivated)". | US-02 |
-| EC-04 | The Manager tries to remove themselves from the project. | Refused; the project always has a Manager. | US-04 |
-| EC-05 | Access to a non-existent or unauthorised project or task via direct URL. | Generic "Not found" message, without revealing whether the resource exists. | US-03, US-06 |
-| EC-06 | Project with no tasks. | Progress shown as "No tasks" (avoids division by zero). | US-07 |
-| EC-07 | Session expires while the user is editing a task. | Saving is refused and the user is sent to the login screen. | US-01 |
-| EC-08 | Title containing HTML/script content (e.g. `<script>`). | Stored and displayed as text, never executed. | US-05 |
-| EC-09 | Due date in the past. | Accepted without error. *(Visual highlighting of overdue tasks is not in the MVP.)* | US-05 |
+| ID    | Situation                                                                | Expected behaviour                                                                       | US           |
+| ----- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ------------ |
+| EC-01 | Two members edit the same task almost simultaneously.                    | Last write wins; no data is corrupted. *(Conflict strategy to be confirmed in Class 2.)* | US-06        |
+| EC-02 | A task assignee is removed from the project.                             | The tasks become unassigned.                                                             | US-04        |
+| EC-03 | The assignee's account is deactivated.                                   | Tasks keep the assignee, shown as "(deactivated)".                                       | US-02        |
+| EC-04 | The Manager tries to remove themselves from the project.                 | Refused; the project always has a Manager.                                               | US-04        |
+| EC-05 | Access to a non-existent or unauthorised project or task via direct URL. | Generic "Not found" message, without revealing whether the resource exists.              | US-03, US-06 |
+| EC-06 | Project with no tasks.                                                   | Progress shown as "No tasks" (avoids division by zero).                                  | US-07        |
+| EC-07 | Session expires while the user is editing a task.                        | Saving is refused and the user is sent to the login screen.                              | US-01        |
+| EC-08 | Title containing HTML/script content (e.g. `<script>`).                  | Stored and displayed as text, never executed.                                            | US-05        |
+| EC-09 | Due date in the past.                                                    | Accepted without error. *(Visual highlighting of overdue tasks is not in the MVP.)*      | US-05        |

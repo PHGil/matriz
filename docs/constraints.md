@@ -4,55 +4,55 @@
 
 ## 1. Known constraints
 
-| ID   | Constraint | Source |
-|------|------------|--------|
-| C-01 | The application is called **Matriz**. | Client |
-| C-02 | It must support organising projects, managing tasks and tracking progress. | Client |
-| C-03 | It is meant to be used by teams (several users collaborating). | Client |
-| C-04 | In this phase (Lab Sheet 01) no code is implemented; the focus is the specification. | Academic context |
+| ID   | Constraint                                                                                      | Source           |
+| ---- | ----------------------------------------------------------------------------------------------- | ---------------- |
+| C-01 | The application is called **Matriz**.                                                           | Client           |
+| C-02 | It must support organising projects, managing tasks and tracking progress.                      | Client           |
+| C-03 | It is meant to be used by teams (several users collaborating).                                  | Client           |
+| C-04 | In this phase (Lab Sheet 01) no code is implemented; the focus is the specification.            | Academic context |
 | C-05 | Language, framework, database and architecture will only be chosen in the next phase (Class 2). | Academic context |
 
 ## 2. Assumptions
 
-| ID   | Assumption | Impact if wrong |
-|------|------------|-----------------|
-| A-01 | The application serves **a single organisation** (not multi-tenant). | Data model and permissions would need isolation between organisations. |
-| A-02 | It is an **internal** tool: accounts are created by the Administrator, no self-registration. | A sign-up flow, email verification and abuse protection would be needed. |
-| A-03 | The Administrator manages accounts but does **not** automatically see project content. | If the client requires global oversight, a profile with full read access is needed. |
-| A-04 | Each project is visible only to its members. | If projects are public within the organisation, permissions become simpler. |
-| A-05 | There are two roles per project: **Manager** and **Member**. The project creator is the Manager. There is only one Manager per project. | More roles (e.g. viewer, several managers) change permissions and user stories. |
-| A-06 | Task statuses are fixed: To Do, In Progress, Done. | Custom workflows would require per-project configuration. |
-| A-07 | The application is **web-based** and used mostly on desktop. | Mobile support would require responsive design or a native app. |
-| A-08 | Expected volume: up to ~100 users and up to 500 tasks per project. | Affects performance requirements (NFR-07) and architecture choices. |
-| A-09 | A project's progress is measured as the percentage of tasks in "Done". | If the client wants to measure by effort, dates or milestones, the metric changes. |
-| A-10 | There are no sector-specific legal requirements beyond the GDPR. | Regulated sectors may impose auditing, retention or specific hosting. |
+| ID   | Assumption                                                                                                                              | Impact if wrong                                                                     |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| A-01 | The application serves **a single organisation** (not multi-tenant).                                                                    | Data model and permissions would need isolation between organisations.              |
+| A-02 | It is an **internal** tool: accounts are created by the Administrator, no self-registration.                                            | A sign-up flow, email verification and abuse protection would be needed.            |
+| A-03 | The Administrator manages accounts but does **not** automatically see project content.                                                  | If the client requires global oversight, a profile with full read access is needed. |
+| A-04 | Each project is visible only to its members.                                                                                            | If projects are public within the organisation, permissions become simpler.         |
+| A-05 | There are two roles per project: **Manager** and **Member**. The project creator is the Manager. There is only one Manager per project. | More roles (e.g. viewer, several managers) change permissions and user stories.     |
+| A-06 | Task statuses are fixed: To Do, In Progress, Done.                                                                                      | Custom workflows would require per-project configuration.                           |
+| A-07 | The application is **web-based** and used mostly on desktop.                                                                            | Mobile support would require responsive design or a native app.                     |
+| A-08 | Expected volume: up to ~100 users and up to 500 tasks per project.                                                                      | Affects performance requirements (NFR-07) and architecture choices.                 |
+| A-09 | A project's progress is measured as the percentage of tasks in "Done".                                                                  | If the client wants to measure by effort, dates or milestones, the metric changes.  |
+| A-10 | There are no sector-specific legal requirements beyond the GDPR.                                                                        | Regulated sectors may impose auditing, retention or specific hosting.               |
 
 ## 3. Security and privacy requirements
 
-| ID   | Requirement |
-|------|-------------|
-| S-01 | Passwords stored only with a strong salted hashing algorithm (NFR-01). |
-| S-02 | Communication always encrypted via HTTPS/TLS (NFR-02). |
-| S-03 | Authorisation checked on the server for every request; users never access projects they are not members of (NFR-03, FR-13). |
+| ID   | Requirement                                                                                                                                  |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| S-01 | Passwords stored only with a strong salted hashing algorithm (NFR-01).                                                                       |
+| S-02 | Communication always encrypted via HTTPS/TLS (NFR-02).                                                                                       |
+| S-03 | Authorisation checked on the server for every request; users never access projects they are not members of (NFR-03, FR-13).                  |
 | S-04 | Protection against brute-force login attempts (NFR-04). *Risk: the lockout can be abused to block other users' access; reassess in Class 2.* |
-| S-05 | Login error messages do not reveal whether the email exists. |
-| S-06 | Deactivated accounts cannot authenticate and their active sessions are terminated. |
-| S-07 | Personal data collected is limited to the minimum: name, email and password (GDPR — data minimisation). |
-| S-08 | Credentials, keys and secrets are never stored in the repository or written to logs. |
-| S-09 | All user input is validated on the server and displayed content is escaped (injection and XSS prevention). |
+| S-05 | Login error messages do not reveal whether the email exists.                                                                                 |
+| S-06 | Deactivated accounts cannot authenticate and their active sessions are terminated.                                                           |
+| S-07 | Personal data collected is limited to the minimum: name, email and password (GDPR — data minimisation).                                      |
+| S-08 | Credentials, keys and secrets are never stored in the repository or written to logs.                                                         |
+| S-09 | All user input is validated on the server and displayed content is escaped (injection and XSS prevention).                                   |
 
 ## 4. Pending technical decisions
 
-| ID   | Decision | When |
-|------|----------|------|
-| D-01 | Language, frontend and backend frameworks. | Class 2 |
-| D-02 | Database and data model. | Class 2 |
-| D-03 | Architecture (monolith, API + SPA, etc.) and API design. | Class 2 |
-| D-04 | Hosting and deployment infrastructure. | TBD |
-| D-05 | Password recovery mechanism (email vs. reset by the Administrator). | To validate with the client |
-| D-06 | Need for SSO or two-factor authentication. | To validate with the client |
+| ID   | Decision                                                              | When                        |
+| ---- | --------------------------------------------------------------------- | --------------------------- |
+| D-01 | Language, frontend and backend frameworks.                            | Class 2                     |
+| D-02 | Database and data model.                                              | Class 2                     |
+| D-03 | Architecture (monolith, API + SPA, etc.) and API design.              | Class 2                     |
+| D-04 | Hosting and deployment infrastructure.                                | TBD                         |
+| D-05 | Password recovery mechanism (email vs. reset by the Administrator).   | To validate with the client |
+| D-06 | Need for SSO or two-factor authentication.                            | To validate with the client |
 | D-07 | Data retention policy for deactivated accounts and archived projects. | To validate with the client |
-| D-08 | Behaviour when deleting a user (vs. only deactivating). | To validate with the client |
+| D-08 | Behaviour when deleting a user (vs. only deactivating).               | To validate with the client |
 
 ## 5. Scope limitations
 

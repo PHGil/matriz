@@ -24,12 +24,12 @@ Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope).
 
 ## Documentation
 
-| File | Contents |
-|------|----------|
-| [docs/requirements.md](docs/requirements.md) | Vision, user profiles, functional and non-functional requirements, MVP scope. |
-| [docs/user-stories.md](docs/user-stories.md) | Backlog, user stories, acceptance criteria and exceptional cases. |
-| [docs/constraints.md](docs/constraints.md) | Constraints, assumptions, security and privacy, pending decisions, questions for the client. |
-| [AGENTS.md](AGENTS.md) | Instructions for AI agents working in this repository. |
+| File                                         | Contents                                                                                     |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [docs/requirements.md](docs/requirements.md) | Vision, user profiles, functional and non-functional requirements, MVP scope.                |
+| [docs/user-stories.md](docs/user-stories.md) | Backlog, user stories, acceptance criteria and exceptional cases.                            |
+| [docs/constraints.md](docs/constraints.md)   | Constraints, assumptions, security and privacy, pending decisions, questions for the client. |
+| [AGENTS.md](AGENTS.md)                       | Instructions for AI agents working in this repository.                                       |
 
 ## Current status
 
