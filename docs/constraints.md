@@ -10,7 +10,7 @@
 | C-02 | It must support organising projects, managing tasks and tracking progress.                      | Client           |
 | C-03 | It is meant to be used by teams (several users collaborating).                                  | Client           |
 | C-04 | In this phase (Lab Sheet 01) no code is implemented; the focus is the specification.            | Academic context |
-| C-05 | Language, framework, database and architecture will only be chosen in the next phase (Class 2). | Academic context |
+| C-05 | Language, framework, database and architecture will only be chosen in the next phase (Class 2). Done: see [architecture.md](architecture.md). | Academic context |
 
 ## 2. Assumptions
 
@@ -45,9 +45,9 @@
 
 | ID   | Decision                                                              | When                        |
 | ---- | --------------------------------------------------------------------- | --------------------------- |
-| D-01 | Language, frontend and backend frameworks.                            | Class 2                     |
-| D-02 | Database and data model.                                              | Class 2                     |
-| D-03 | Architecture (monolith, API + SPA, etc.) and API design.              | Class 2                     |
+| D-01 | Language, frontend and backend frameworks.                            | **Decided (Class 2):** Java + Quarkus, Angular — [architecture.md](architecture.md) ADR-02 |
+| D-02 | Database and data model.                                              | **Decided (Class 2):** PostgreSQL — [database.md](database.md) |
+| D-03 | Architecture (monolith, API + SPA, etc.) and API design.              | **Decided (Class 2):** modular monolith, REST API + SPA — [architecture.md](architecture.md), [openapi.yaml](../openapi.yaml) |
 | D-04 | Hosting and deployment infrastructure.                                | TBD                         |
 | D-05 | Password recovery mechanism (email vs. reset by the Administrator).   | To validate with the client |
 | D-06 | Need for SSO or two-factor authentication.                            | To validate with the client |

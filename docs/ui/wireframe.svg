@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#333" stroke-width="1.5">
+  <title>Matriz — Wireframe: Quadro do projeto (low fidelity)</title>
+  <rect width="1280" height="800" fill="#fff"/>
+
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1280" height="56" fill="#eee" stroke="#999"/>
+  <text x="40" y="35" font-size="20" font-weight="bold">Matriz</text>
+  <text x="160" y="35" text-decoration="underline">Projetos</text>
+  <text x="250" y="35" fill="#777">Utilizadores (só Administrador)</text>
+  <text x="1040" y="35">Ana Silva</text>
+  <rect x="1150" y="14" width="90" height="28" fill="#fff" stroke="#999"/>
+  <text x="1178" y="33">Sair</text>
+
+  <!-- Breadcrumb + project header -->
+  <text x="40" y="90" fill="#777">Projetos  ›  Website 2027</text>
+  <text x="40" y="125" font-size="24" font-weight="bold">Website 2027</text>
+  <text x="40" y="150" fill="#777">Redesenho do site institucional (descrição opcional)</text>
+
+  <rect x="900" y="100" width="120" height="34" fill="#fff" stroke="#999"/>
+  <text x="925" y="122">Membros</text>
+  <rect x="1040" y="100" width="180" height="34" fill="#ddd" stroke="#666"/>
+  <text x="1075" y="122" font-weight="bold">+ Nova tarefa</text>
+  <text x="900" y="152" font-size="11" fill="#777">Botão Membros: visível apenas para o Gestor</text>
+
+  <!-- Progress -->
+  <rect x="40" y="170" width="1200" height="70" fill="#fafafa" stroke="#999"/>
+  <text x="60" y="196" font-weight="bold">Progresso</text>
+  <rect x="160" y="182" width="700" height="18" fill="#fff" stroke="#666"/>
+  <rect x="160" y="182" width="350" height="18" fill="#bbb"/>
+  <text x="875" y="197" font-weight="bold">50%</text>
+  <text x="60" y="226">Por fazer: 2   ·   Em curso: 3   ·   Concluídas: 5   ·   Total: 10</text>
+  <text x="960" y="226" font-size="11" fill="#777">Projeto sem tarefas: mostra Sem tarefas</text>
+
+  <!-- Columns -->
+  <g>
+    <rect x="40" y="260" width="386" height="500" fill="#f4f4f4" stroke="#999"/>
+    <text x="56" y="288" font-weight="bold">Por fazer (2)</text>
+    <rect x="446" y="260" width="386" height="500" fill="#f4f4f4" stroke="#999"/>
+    <text x="462" y="288" font-weight="bold">Em curso (3)</text>
+    <rect x="852" y="260" width="386" height="500" fill="#f4f4f4" stroke="#999"/>
+    <text x="868" y="288" font-weight="bold">Concluído (5)</text>
+  </g>
+
+  <!-- Card template: title, assignee, priority, due date -->
+  <!-- Por fazer -->
+  <g>
+    <rect x="56" y="304" width="354" height="86" fill="#fff" stroke="#666"/>
+    <text x="70" y="328" font-weight="bold">Rever proposta</text>
+    <text x="70" y="352" fill="#555">Sem responsável</text>
+    <text x="70" y="376" fill="#555">Prioridade: —   ·   Prazo: —</text>
+    <text x="380" y="328" font-weight="bold">•••</text>
+
+    <rect x="56" y="402" width="354" height="86" fill="#fff" stroke="#666"/>
+    <text x="70" y="426" font-weight="bold">Definir mapa do site</text>
+    <text x="70" y="450" fill="#555">Bruno Costa</text>
+    <text x="70" y="474" fill="#555">Prioridade: Alta   ·   Prazo: 15/11/2026</text>
+    <text x="380" y="426" font-weight="bold">•••</text>
+  </g>
+
+  <!-- Em curso -->
+  <g>
+    <rect x="462" y="304" width="354" height="86" fill="#fff" stroke="#666"/>
+    <text x="476" y="328" font-weight="bold">Maquetes da página inicial</text>
+    <text x="476" y="352" fill="#555">Ana Silva</text>
+    <text x="476" y="376" fill="#555">Prioridade: Média   ·   Prazo: 05/11/2026</text>
+    <text x="786" y="328" font-weight="bold">•••</text>
+
+    <rect x="462" y="402" width="354" height="86" fill="#fff" stroke="#666"/>
+    <text x="476" y="426" font-weight="bold">Migrar conteúdos</text>
+    <text x="476" y="450" fill="#555">Carla Dias (desativado)</text>
+    <text x="476" y="474" fill="#555">Prioridade: Baixa   ·   Prazo: —</text>
+    <text x="786" y="426" font-weight="bold">•••</text>
+
+    <rect x="462" y="500" width="354" height="86" fill="#fff" stroke="#666" stroke-dasharray="6 4"/>
+    <text x="476" y="524" font-weight="bold">Configurar alojamento</text>
+    <text x="476" y="548" fill="#555">Bruno Costa</text>
+    <text x="476" y="572" fill="#555">Prioridade: Alta   ·   Prazo: 30/10/2026</text>
+    <text x="786" y="524" font-weight="bold">•••</text>
+  </g>
+
+  <!-- Concluído -->
+  <g>
+    <rect x="868" y="304" width="354" height="86" fill="#fff" stroke="#666"/>
+    <text x="882" y="328" font-weight="bold">Levantamento de requisitos</text>
+    <text x="882" y="352" fill="#555">Ana Silva</text>
+    <text x="882" y="376" fill="#555">Prioridade: Alta   ·   Prazo: 01/10/2026</text>
+    <text x="1192" y="328" font-weight="bold">•••</text>
+    <text x="882" y="420" fill="#777">… mais 4 tarefas</text>
+  </g>
+
+  <!-- Card menu (open) -->
+  <rect x="598" y="334" width="206" height="102" fill="#333"/>
+  <rect x="600" y="336" width="200" height="96" fill="#fff" stroke="#333"/>
+  <text x="614" y="360">Editar</text>
+  <text x="614" y="388">Mover para…</text>
+  <text x="614" y="416" fill="#777">Eliminar (só Gestor)</text>
+
+  <!-- Annotations -->
+  <text x="40" y="784" font-size="11" fill="#777">Notas: arrastar um cartão entre colunas altera o estado (US-06). Cartão tracejado = a ser arrastado. Eliminar pede confirmação (US-08). Filtros e "As minhas tarefas" ficam fora do MVP.</text>
+</svg>

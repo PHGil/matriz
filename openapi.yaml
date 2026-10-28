@@ -1,0 +1,385 @@
+openapi: 3.1.0
+info:
+  title: Matriz API
+  version: 0.1.0
+  description: |
+    Simplified REST contract for the Matriz MVP (Class 2).
+    Covers login (US-01), task creation (US-05), task update / status change (US-06)
+    and project progress (US-07). See docs/architecture.md and docs/database.md.
+
+    Non-members of a project always receive 404, never 403, so the existence of
+    the resource is not revealed (EC-05). All traffic must use HTTPS (NFR-02).
+servers:
+  - url: https://matriz.example.com/api/v1
+    description: Placeholder; hosting is pending (D-04).
+security:
+  - sessionCookie: []
+tags:
+  - name: auth
+    description: Authentication and sessions (US-01).
+  - name: tasks
+    description: Task management within a project (US-05, US-06).
+  - name: projects
+    description: Project information and progress (US-07).
+
+paths:
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      summary: Log in with email and password
+      description: |
+        On success sets an HttpOnly, Secure, SameSite=Strict session cookie.
+        Wrong password, unknown email, locked account (5 failures / 15 min, NFR-04)
+        and deactivated account all return the same 401 response (S-05).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '204':
+          description: Authenticated.
+          headers:
+            Set-Cookie:
+              description: Session cookie.
+              schema:
+                type: string
+                example: matriz_session=<token>; Path=/; Secure; HttpOnly; SameSite=Strict
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Invalid email or password.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              example:
+                type: about:blank
+                title: Invalid email or password
+                status: 401
+
+  /projects/{projectId}/tasks:
+    post:
+      tags: [tasks]
+      operationId: createTask
+      summary: Create a task in a project
+      description: |
+        Allowed for the project Manager and Members (FR-20). New tasks start as TODO (FR-22).
+        The assignee, if given, must be a member of the project (FR-24).
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+            example:
+              title: Review proposal
+      responses:
+        '201':
+          description: Task created.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri-reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/tasks/{taskId}:
+    patch:
+      tags: [tasks]
+      operationId: updateTask
+      summary: Update a task (including its status)
+      description: |
+        Partial update; only the fields sent are changed. Sending `null` clears an
+        optional field. Used by the board to move a task between columns (FR-23).
+        Any status transition is allowed, including reopening (US-06 AC2).
+        Last write wins (EC-01). `updatedAt` is always refreshed (NFR-08).
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+            example:
+              status: IN_PROGRESS
+      responses:
+        '200':
+          description: Task updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/progress:
+    get:
+      tags: [projects]
+      operationId: getProjectProgress
+      summary: Get task counts per status and percentage done
+      description: |
+        `percentDone` = round(100 × done / total); `null` when the project has no
+        tasks (EC-06), shown in the UI as "Sem tarefas".
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project progress.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectProgress'
+              example:
+                projectId: 3f1c2b9e-8d4a-4c1e-9b2f-1a2b3c4d5e6f
+                total: 10
+                todo: 2
+                inProgress: 3
+                done: 5
+                percentDone: 50
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: matriz_session
+
+  parameters:
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    ValidationError:
+      description: Invalid input (e.g. empty title, assignee not a project member).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: about:blank
+            title: Validation failed
+            status: 400
+            errors:
+              - field: title
+                message: Title is required
+    Unauthenticated:
+      description: Missing, expired or revoked session (EC-07, S-06).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Resource does not exist or the user is not a member of the project (EC-05).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: about:blank
+            title: Not found
+            status: 404
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          format: password
+          minLength: 1
+
+    TaskStatus:
+      type: string
+      enum: [TODO, IN_PROGRESS, DONE]
+
+    TaskPriority:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+
+    TaskCreate:
+      type: object
+      required: [title]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Trimmed; whitespace-only is rejected. Stored as plain text (EC-08).
+        description:
+          type: [string, 'null']
+        assigneeId:
+          type: [string, 'null']
+          format: uuid
+          description: Must be a member of the project (FR-24).
+        priority:
+          oneOf:
+            - $ref: '#/components/schemas/TaskPriority'
+            - type: 'null'
+        dueDate:
+          type: [string, 'null']
+          format: date
+          description: Past dates are accepted (EC-09).
+
+    TaskUpdate:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: [string, 'null']
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        assigneeId:
+          type: [string, 'null']
+          format: uuid
+        priority:
+          oneOf:
+            - $ref: '#/components/schemas/TaskPriority'
+            - type: 'null'
+        dueDate:
+          type: [string, 'null']
+          format: date
+
+    UserSummary:
+      type: object
+      required: [id, name, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        active:
+          type: boolean
+          description: false is shown as "(desativado)" (EC-03).
+
+    Task:
+      type: object
+      required: [id, projectId, title, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          oneOf:
+            - $ref: '#/components/schemas/TaskPriority'
+            - type: 'null'
+        dueDate:
+          type: [string, 'null']
+          format: date
+        assignee:
+          oneOf:
+            - $ref: '#/components/schemas/UserSummary'
+            - type: 'null'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProjectProgress:
+      type: object
+      required: [projectId, total, todo, inProgress, done, percentDone]
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        total:
+          type: integer
+          minimum: 0
+        todo:
+          type: integer
+          minimum: 0
+        inProgress:
+          type: integer
+          minimum: 0
+        done:
+          type: integer
+          minimum: 0
+        percentDone:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 100
+
+    Problem:
+      type: object
+      description: RFC 9457 problem details.
+      required: [title, status]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field:
+                type: string
+              message:
+                type: string

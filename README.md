@@ -29,8 +29,14 @@ Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope).
 | [docs/requirements.md](docs/requirements.md) | Vision, user profiles, functional and non-functional requirements, MVP scope.                |
 | [docs/user-stories.md](docs/user-stories.md) | Backlog, user stories, acceptance criteria and exceptional cases.                            |
 | [docs/constraints.md](docs/constraints.md)   | Constraints, assumptions, security and privacy, pending decisions, questions for the client. |
+| [docs/architecture.md](docs/architecture.md) | Architecture decision (modular monolith), components, ADRs, consistency review.              |
+| [docs/database.md](docs/database.md)         | Data model, business rules and Mermaid ER diagram.                                           |
+| [openapi.yaml](openapi.yaml)                 | OpenAPI 3.1 contract (login, create/update task, project progress).                          |
+| [docs/ui/](docs/ui/)                         | Low-fidelity wireframe of the project board (`wireframe.svg` / `wireframe.png`).             |
 | [AGENTS.md](AGENTS.md)                       | Instructions for AI agents working in this repository.                                       |
 
 ## Current status
 
-**Specification phase (v0.1).** There is no code yet. The requirements are based on a short client description and a set of assumptions still to be validated (see [docs/constraints.md](docs/constraints.md#2-assumptions)). Choosing technologies and architecture is the next phase.
+**Architecture phase (v0.1).** There is no code yet. The requirements are based on a short client description and a set of assumptions still to be validated (see [docs/constraints.md](docs/constraints.md#2-assumptions)). Architecture, data model, API contract and wireframe are defined (Architecture Pack); implementation is the next phase.
+
+**Planned stack:** Java + Quarkus (REST API), Angular (SPA), PostgreSQL.
