@@ -37,3 +37,22 @@ At the end of each task, briefly state:
 1. What was changed (files).
 2. Assumptions made.
 3. Checks performed (tests, acceptance criteria) and what was left unverified.
+
+## Git Commit Guidelines
+
+You must format every commit message strictly according to the following structural and formatting rules.
+
+### Allowed Prefix Types
+Every commit message must start with exactly one of these three prefixes:
+* `feat: `
+* `chore: `
+* `fix: `
+
+### Formatting Rules
+* **Subject Line Length:** Limit the first line to **50 characters** or fewer.
+* **Capitalization:** Start the description immediately after the prefix with a **lowercase letter**.
+* **No Ending Punctuation:** Do not end the subject line with a period.
+* **Imperative Mood:** Use the imperative, present-tense mood in the description (e.g., "add feature" instead of "added feature" or "adds feature").
+* **Spacing:** Separate the subject line from the body with **exactly one blank line** (if a body is provided).
+* **User Story Tracking:** You must append the User Story identification enclosed in parentheses at the very end of the commit message (e.g., `(US-1)`).
+
