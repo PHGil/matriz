@@ -1,5 +1,11 @@
 <header class="topbar">
   <a class="brand" routerLink="/">{{ title }}</a>
+  <nav>
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+      >Início</a
+    >
+    <a routerLink="/projetos" routerLinkActive="active">Projetos</a>
+  </nav>
   <span class="spacer"></span>
   @if (auth.user(); as user) {
     <span class="user">{{ user.name }}</span>

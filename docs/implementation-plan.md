@@ -64,7 +64,7 @@ Identity (project manager, comment author, assignment date) is always taken from
 | --- | ---------------------------- | ------- | -------------------------------- |
 | 0   | Scaffold and persistence     | 2       | Done                             |
 | 1   | Authentication               | 3       | Done                             |
-| 2   | Projects, members, dashboard | 4       | Not started                      |
+| 2   | Projects, members, dashboard | 4       | Done                             |
 | 3   | Tasks, filters, progress     | 5       | Not started                      |
 | 4   | Assignees and comments       | 6       | Not started                      |
 | 5   | Account administration       | —       | Removed (Keycloak admin console) |
@@ -93,6 +93,7 @@ Identity (project manager, comment author, assignment date) is always taken from
 - **Frontend:** dashboard (projects + counts), projects list with search, create/edit form, delete with confirmation, members screen.
 - **Acceptance:** US-03 AC1–AC3 (with 3–100 rule), US-04 AC1–AC5, delete leaves no orphans, first increment of the lab sheet (login → create → list → reload → restart backend → still there).
 - **Verification:** tests for validation (name blank/2 chars), authorisation (other user gets 404, member gets 403 on edit), create + read back; manual end-to-end.
+- **Result (Inc 2):** Automated: `ProjectResourceTest` (6 tests) — create + read back (API and DB, creator is `MANAGER`); validation (blank, 2 and 101 chars, missing name, 1001-char description, malformed JSON, unknown field → 400 problem+json); outsider gets 404 on read/edit/delete/members even with the id; member gets 403 on edit/delete/add member; search (incl. `%` treated literally); duplicate member and removing the Manager → 409; removing a member deletes their assignments; deleting a project removes members, tasks and assignments. Frontend 5 unit tests. Manual (browser): dashboard shows only own projects with counts and %; whitespace name blocked in the form; project created → detail page; still listed after page reload **and** backend restart (lab "first increment"); search by name; add member via user search; cancel/confirm delete; Carla opening Ana's project by URL → "Não encontrado.". Fixes during the increment: Jackson body errors returned an empty 400 → mapped to problem+json; "no users" shown while searching → "A pesquisar…" state. Not verified in browser: edit project form, remove member.
 
 ### Inc 3 — Tasks, filters, progress (US-05 – US-09)
 

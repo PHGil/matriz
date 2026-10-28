@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -18,6 +19,12 @@ class UserServiceTest {
 
     @Inject
     UserService userService;
+
+    /** synchronise() deactivates every user missing from the list, including other test classes' users. */
+    @AfterEach
+    void reactivateAll() {
+        QuarkusTransaction.requiringNew().run(() -> AppUser.update("active = true"));
+    }
 
     @Test
     void synchroniseMirrorsKeycloakAndDeactivatesMissingUsers() {

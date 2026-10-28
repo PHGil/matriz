@@ -1,1 +1,208 @@
-/* You can add global styles to this file, and also import other style files */
+/* Shared low-fidelity styles (wireframe docs/ui). Layout is fluid so it stays usable on narrower windows. */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  color: #333;
+  background: #fff;
+}
+
+a {
+  color: #1a4f8b;
+}
+
+h1 {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 1.6rem;
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+}
+
+button,
+.button {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #888;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+button.primary {
+  background: #ddd;
+  border-color: #555;
+  font-weight: bold;
+}
+
+button.danger {
+  border-color: #b33;
+  color: #b33;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #999;
+  border-radius: 4px;
+  font: inherit;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-weight: bold;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 40rem;
+}
+
+.field-error {
+  color: #b33;
+  font-size: 0.9rem;
+  margin-top: -0.4rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panel {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #999;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.search {
+  max-width: 28rem;
+  margin-bottom: 1rem;
+}
+
+.muted {
+  color: #777;
+}
+
+.notice {
+  padding: 0.6rem 0.9rem;
+  border-radius: 4px;
+}
+
+.notice.error {
+  background: #fde8e8;
+  border: 1px solid #e0a0a0;
+}
+
+.notice.success {
+  background: #e6f4e6;
+  border: 1px solid #9c9;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid #999;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  padding: 1rem;
+  border: 1px solid #999;
+  border-radius: 4px;
+}
+
+.card-title {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.counts {
+  display: flex;
+  gap: 1rem;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.counts dt {
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.counts dd {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.list {
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.list li button {
+  margin-left: auto;
+}

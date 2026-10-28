@@ -1,6 +1,6 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import {
   AutoRefreshTokenService,
   INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
@@ -32,6 +32,6 @@ export const appConfig: ApplicationConfig = {
       useValue: [{ urlPattern: apiUrlPattern }],
     },
     provideHttpClient(withInterceptors([includeBearerTokenInterceptor, sessionExpiredInterceptor])),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
   ],
 };
