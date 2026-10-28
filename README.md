@@ -24,17 +24,17 @@ Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope).
 
 ## Documentation
 
-| File                                         | Contents                                                                                     |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| [docs/requirements.md](docs/requirements.md) | Vision, user profiles, functional and non-functional requirements, MVP scope.                |
-| [docs/user-stories.md](docs/user-stories.md) | Backlog, user stories, acceptance criteria and exceptional cases.                            |
-| [docs/constraints.md](docs/constraints.md)   | Constraints, assumptions, security and privacy, pending decisions, questions for the client. |
-| [docs/architecture.md](docs/architecture.md) | Architecture decision (modular monolith), components, ADRs, consistency review.              |
-| [docs/database.md](docs/database.md)         | Data model, business rules and Mermaid ER diagram.                                           |
-| [openapi.yaml](openapi.yaml)                 | OpenAPI 3.1 contract of the MVP API (authentication via Keycloak).                           |
-| [docs/ui/](docs/ui/)                         | Low-fidelity wireframe of the project board (`wireframe.svg` / `wireframe.png`).             |
-| [docs/implementation-plan.md](docs/implementation-plan.md) | Scope reconciliation, access rules, technical decisions and increments (Class 3). |
-| [AGENTS.md](AGENTS.md)                       | Instructions for AI agents working in this repository.                                       |
+| File                                                       | Contents                                                                                     |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [docs/requirements.md](docs/requirements.md)               | Vision, user profiles, functional and non-functional requirements, MVP scope.                |
+| [docs/user-stories.md](docs/user-stories.md)               | Backlog, user stories, acceptance criteria and exceptional cases.                            |
+| [docs/constraints.md](docs/constraints.md)                 | Constraints, assumptions, security and privacy, pending decisions, questions for the client. |
+| [docs/architecture.md](docs/architecture.md)               | Architecture decision (modular monolith), components, ADRs, consistency review.              |
+| [docs/database.md](docs/database.md)                       | Data model, business rules and Mermaid ER diagram.                                           |
+| [openapi.yaml](openapi.yaml)                               | OpenAPI 3.1 contract of the MVP API (authentication via Keycloak).                           |
+| [docs/ui/](docs/ui/)                                       | Low-fidelity wireframe of the project board (`wireframe.svg` / `wireframe.png`).             |
+| [docs/implementation-plan.md](docs/implementation-plan.md) | Scope reconciliation, access rules, technical decisions and increments (Class 3).            |
+| [AGENTS.md](AGENTS.md)                                     | Instructions for AI agents working in this repository.                                       |
 
 ## Current status
 
@@ -86,15 +86,23 @@ npm install
 npm start                     # http://localhost:4200 — /api is proxied to the backend
 ```
 
+### Authentication (Keycloak)
+
+1. Opening the app redirects to the Keycloak login page of realm `matriz` (OIDC Authorization Code + PKCE, client `matriz-frontend`).
+2. After login, the app sends the access token as `Authorization: Bearer <token>` only to `/api/v1`. The backend validates the JWT (issuer, signature, audience `matriz-backend`) and identifies the user by its `sub` claim.
+3. Access tokens last **5 minutes** and are refreshed automatically while the user is active; after **30 minutes** of inactivity (or 8 h in total) the Keycloak session ends.
+4. **Sair** logs out of Keycloak and returns to the login page. If the API answers `401`, the app shows "A sua sessão expirou" with a button to log in again.
+5. Accounts are created, disabled and re-enabled in the Keycloak console. The backend mirrors users into `app_user` at startup and every 5 minutes; a disabled user cannot log in and loses API access when the current token expires (≤ 5 min).
+
 ### Demo accounts
 
 All demo users share the password set in `MATRIZ_DEMO_PASSWORD` in your `.env`.
 
-| User                | Role                                                |
-| ------------------- | --------------------------------------------------- |
-| `ana@matriz.test`   | Manager of "Website 2027"                           |
-| `bruno@matriz.test` | Member of "Website 2027", Manager of "Intranet"     |
-| `carla@matriz.test` | Member of "Intranet" (no access to "Website 2027")  |
+| User                | Role                                                 |
+| ------------------- | ---------------------------------------------------- |
+| `ana@matriz.test`   | Manager of "Website 2027"                            |
+| `bruno@matriz.test` | Member of "Website 2027", Manager of "Intranet"      |
+| `carla@matriz.test` | Member of "Intranet" (no access to "Website 2027")   |
 | `admin@matriz.test` | Realm administrator in Keycloak (accounts, FR-03/04) |
 
 ### Tests

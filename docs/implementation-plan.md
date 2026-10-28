@@ -63,7 +63,7 @@ Identity (project manager, comment author, assignment date) is always taken from
 | Inc | Name                         | Lab ex. | Status                           |
 | --- | ---------------------------- | ------- | -------------------------------- |
 | 0   | Scaffold and persistence     | 2       | Done                             |
-| 1   | Authentication               | 3       | Not started                      |
+| 1   | Authentication               | 3       | Done                             |
 | 2   | Projects, members, dashboard | 4       | Not started                      |
 | 3   | Tasks, filters, progress     | 5       | Not started                      |
 | 4   | Assignees and comments       | 6       | Not started                      |
@@ -85,6 +85,7 @@ Identity (project manager, comment author, assignment date) is always taken from
 - **Frontend:** Keycloak login redirect, auth guard, token on API calls, 401 handling, header with user name and "Sair" (Keycloak logout).
 - **Acceptance:** US-01 AC1, AC2, AC4, AC5; US-02 AC1, AC3 (via Keycloak console + sync).
 - **Verification:** `@QuarkusTest`: request without token → 401, with simulated user → `/auth/me` returns and provisions the user; manual login/logout with demo accounts in the browser; disable a user in Keycloak and confirm loss of access within 5 min.
+- **Result (Inc 1):** Automated: `AuthResourceTest` (no token → 401 problem+json; simulated OIDC user → `/auth/me` + user persisted) and `UserServiceTest` (sync mirrors name/active and deactivates users missing in Keycloak) pass; frontend 3 tests pass. Manual (browser): app redirects to Keycloak with PKCE S256; wrong password → "Invalid username or password."; correct login → header shows "Ana Silva" from `/auth/me`; **Sair** → back to login page. API: no token and malformed token → 401 `application/problem+json`. Disabling Carla in Keycloak → login refused ("Account is disabled") and `app_user.active = false` after sync. **Bug found and fixed:** a malformed token made Quarkus call Keycloak token introspection (ERROR log, client has no secret) → disabled opaque-token introspection. Not verified in browser: the "sessão expirou" banner (unit-tested only) and the 30-min inactivity logout. Guards are not needed: `onLoad: 'login-required'` protects the whole app.
 
 ### Inc 2 — Projects, members, dashboard (US-03, US-04, FR-15, FR-16, FR-34)
 
