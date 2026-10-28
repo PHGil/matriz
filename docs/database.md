@@ -153,10 +153,10 @@ erDiagram
 | BR-04 | The Manager cannot be removed from the project.                                                               | Service                                                              | US-04 AC4    |
 | BR-05 | An assignee must be an active member of the task's project; the same user cannot be assigned twice to a task. | Service + composite PK                                               | FR-24        |
 | BR-06 | Removing a member deletes their `TASK_ASSIGNEE` rows for tasks of that project.                               | Service (same transaction)                                           | EC-02        |
-| BR-07 | Deactivating a user (in Keycloak) keeps their task assignments; the sync sets `active = false`.                | Keycloak + sync job                                                  | EC-03, S-06  |
+| BR-07 | Deactivating a user (in Keycloak) keeps their task assignments; the sync sets `active = false`.               | Keycloak + sync job                                                  | EC-03, S-06  |
 | BR-08 | Only the Manager can delete tasks (hard delete; assignments and comments cascade).                            | Service + `ON DELETE CASCADE`                                        | FR-25        |
 | BR-09 | Progress = round(100 × DONE / total); `null` when total = 0.                                                  | Aggregate query                                                      | FR-31, EC-06 |
-| BR-10 | Local users are never physically deleted; a user deleted in Keycloak is marked `active = false` by the sync.   | Sync job                                                             | FR-04, D-08  |
+| BR-10 | Local users are never physically deleted; a user deleted in Keycloak is marked `active = false` by the sync.  | Sync job                                                             | FR-04, D-08  |
 | BR-11 | Only the Manager can delete a project; members, tasks, assignments and comments are deleted with it.          | Service + `ON DELETE CASCADE`                                        | FR-15        |
 | BR-12 | Comment author and date are set from the authenticated user (token), never from the request.                  | Service                                                              | FR-27        |
 

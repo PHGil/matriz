@@ -1,0 +1,111 @@
+{
+  "realm": "matriz",
+  "enabled": true,
+  "displayName": "Matriz",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "bruteForceProtected": false,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 28800,
+  "clients": [
+    {
+      "clientId": "matriz-frontend",
+      "name": "Matriz web app",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:4200",
+      "baseUrl": "/",
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-matriz-backend",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "matriz-backend",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "matriz-backend",
+      "name": "Matriz API",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${MATRIZ_BACKEND_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-matriz-backend",
+      "enabled": true,
+      "serviceAccountClientId": "matriz-backend",
+      "clientRoles": {
+        "realm-management": ["view-users"]
+      }
+    },
+    {
+      "id": "9a6f0c2e-0000-4000-8000-000000000001",
+      "username": "admin@matriz.test",
+      "email": "admin@matriz.test",
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Matriz",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${MATRIZ_DEMO_PASSWORD}", "temporary": false }],
+      "clientRoles": {
+        "realm-management": ["realm-admin"]
+      }
+    },
+    {
+      "id": "9a6f0c2e-0000-4000-8000-000000000011",
+      "username": "ana@matriz.test",
+      "email": "ana@matriz.test",
+      "emailVerified": true,
+      "firstName": "Ana",
+      "lastName": "Silva",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${MATRIZ_DEMO_PASSWORD}", "temporary": false }]
+    },
+    {
+      "id": "9a6f0c2e-0000-4000-8000-000000000012",
+      "username": "bruno@matriz.test",
+      "email": "bruno@matriz.test",
+      "emailVerified": true,
+      "firstName": "Bruno",
+      "lastName": "Costa",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${MATRIZ_DEMO_PASSWORD}", "temporary": false }]
+    },
+    {
+      "id": "9a6f0c2e-0000-4000-8000-000000000013",
+      "username": "carla@matriz.test",
+      "email": "carla@matriz.test",
+      "emailVerified": true,
+      "firstName": "Carla",
+      "lastName": "Dias",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "${MATRIZ_DEMO_PASSWORD}", "temporary": false }]
+    }
+  ]
+}

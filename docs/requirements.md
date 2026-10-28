@@ -35,13 +35,13 @@ Priority using MoSCoW: **M** (Must), **S** (Should), **C** (Could), **W** (Won't
 
 ### 3.1 Accounts and authentication
 
-| ID    | Requirement                                                           | Priority | Rationale                                                               |
-| ----- | --------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
-| FR-01 | The system must allow authentication with email and password.         | M        | Needed to identify users and control access.                            |
-| FR-02 | The system must allow users to log out.                               | M        | Basic security on shared workstations.                                  |
-| FR-03 | The Administrator must be able to create user accounts (name, email). | M        | Internal tool: access is controlled by the organisation (A-02). Done in the Keycloak admin console (ADR-08). |
+| ID    | Requirement                                                           | Priority | Rationale                                                                                                            |
+| ----- | --------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| FR-01 | The system must allow authentication with email and password.         | M        | Needed to identify users and control access.                                                                         |
+| FR-02 | The system must allow users to log out.                               | M        | Basic security on shared workstations.                                                                               |
+| FR-03 | The Administrator must be able to create user accounts (name, email). | M        | Internal tool: access is controlled by the organisation (A-02). Done in the Keycloak admin console (ADR-08).         |
 | FR-04 | The Administrator must be able to deactivate and reactivate accounts. | M        | Allows revoking access (e.g. employees leaving) without losing history. Done in the Keycloak admin console (ADR-08). |
-| FR-05 | Users must be able to change their own password.                      | S        | Security hygiene; does not block initial use.                           |
+| FR-05 | Users must be able to change their own password.                      | S        | Security hygiene; does not block initial use.                                                                        |
 
 ### 3.2 Projects
 
@@ -80,17 +80,17 @@ Priority using MoSCoW: **M** (Must), **S** (Should), **C** (Could), **W** (Won't
 
 ## 4. Non-functional requirements
 
-| ID     | Category        | Requirement                                                                                                                 | Verification                                                                     |
-| ------ | --------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| NFR-01 | Security        | Passwords are stored only as a strong salted hash (never in plain text).                                                    | Provided by Keycloak (ADR-08); the application never stores passwords.           |
-| NFR-02 | Security        | All client-server communication is encrypted (HTTPS/TLS).                                                                   | Plain HTTP requests are rejected or redirected.                                  |
-| NFR-03 | Security        | Access control is enforced on the server for every operation (not only in the UI).                                          | Tests sending direct requests without permission receive an authorisation error. |
+| ID     | Category        | Requirement                                                                                                                                     | Verification                                                                     |
+| ------ | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| NFR-01 | Security        | Passwords are stored only as a strong salted hash (never in plain text).                                                                        | Provided by Keycloak (ADR-08); the application never stores passwords.           |
+| NFR-02 | Security        | All client-server communication is encrypted (HTTPS/TLS).                                                                                       | Plain HTTP requests are rejected or redirected.                                  |
+| NFR-03 | Security        | Access control is enforced on the server for every operation (not only in the UI).                                                              | Tests sending direct requests without permission receive an authorisation error. |
 | NFR-04 | Security        | ~~After 5 consecutive failed login attempts, the account is locked for login for 15 minutes.~~ **Removed in Class 3** (product owner decision). | —                                                                                |
-| NFR-05 | Usability       | The user interface is in Portuguese (Portugal).                                                                             | UI review.                                                                       |
-| NFR-06 | Compatibility   | The application works on the two latest stable versions of Chrome, Firefox, Edge and Safari, on desktop screens (≥ 1280px). | Manual/automated tests on the listed browsers.                                   |
-| NFR-07 | Performance     | The board of a project with up to 500 tasks loads in under 2 seconds under normal network conditions.                       | Performance test. *(Target value is an assumption — A-08.)*                      |
-| NFR-08 | Reliability     | Every task and project records its creation and last-modified dates.                                                        | Data check.                                                                      |
-| NFR-09 | Maintainability | The code has automated tests for business and permission rules.                                                             | Test pipeline.                                                                   |
+| NFR-05 | Usability       | The user interface is in Portuguese (Portugal).                                                                                                 | UI review.                                                                       |
+| NFR-06 | Compatibility   | The application works on the two latest stable versions of Chrome, Firefox, Edge and Safari, on desktop screens (≥ 1280px).                     | Manual/automated tests on the listed browsers.                                   |
+| NFR-07 | Performance     | The board of a project with up to 500 tasks loads in under 2 seconds under normal network conditions.                                           | Performance test. *(Target value is an assumption — A-08.)*                      |
+| NFR-08 | Reliability     | Every task and project records its creation and last-modified dates.                                                                            | Data check.                                                                      |
+| NFR-09 | Maintainability | The code has automated tests for business and permission rules.                                                                                 | Test pipeline.                                                                   |
 
 > Note: UI labels and messages are written in English in this documentation for readability; the UI will use the Portuguese equivalents (NFR-05). Exception approved in Class 3: the Keycloak login pages are in English.
 

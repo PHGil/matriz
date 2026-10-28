@@ -4,23 +4,23 @@
 
 ## Backlog summary
 
-| ID    | User Story (summary)                | Profile         | Priority | Requirements         | MVP      |
-| ----- | ----------------------------------- | --------------- | -------- | -------------------- | -------- |
-| US-01 | Log in and log out                  | User            | M        | FR-01, FR-02         | Yes      |
-| US-02 | Create and deactivate user accounts | Administrator   | M        | FR-03, FR-04         | Yes      |
-| US-03 | Create a project                    | User            | M        | FR-10, FR-13         | Yes      |
-| US-04 | Manage project members              | Project Manager | M        | FR-12                | Yes      |
-| US-05 | Create a task                       | Team Member     | M        | FR-20, FR-22, FR-26  | Yes      |
-| US-06 | Change a task's status on the board | Team Member     | M        | FR-23, FR-30         | Yes      |
-| US-07 | View a project's progress           | Team Member     | M        | FR-31                | Yes      |
-| US-08 | Delete a task                       | Project Manager | M        | FR-25                | Yes      |
-| US-09 | Filter a project's tasks            | Team Member     | M        | FR-32                | Yes      |
-| US-10 | View "My tasks"                     | Team Member     | S        | FR-33                | Post-MVP |
-| US-11 | Archive a project                   | Project Manager | S        | FR-14                | Post-MVP |
-| US-12 | Manage task assignees               | Team Member     | M        | FR-24                | Yes      |
-| US-13 | Comment on a task                   | Team Member     | M        | FR-27                | Yes      |
-| US-14 | Delete a project                    | Project Manager | M        | FR-15                | Yes      |
-| US-15 | Search projects and see dashboard   | User            | M        | FR-16, FR-34         | Yes      |
+| ID    | User Story (summary)                | Profile         | Priority | Requirements        | MVP      |
+| ----- | ----------------------------------- | --------------- | -------- | ------------------- | -------- |
+| US-01 | Log in and log out                  | User            | M        | FR-01, FR-02        | Yes      |
+| US-02 | Create and deactivate user accounts | Administrator   | M        | FR-03, FR-04        | Yes      |
+| US-03 | Create a project                    | User            | M        | FR-10, FR-13        | Yes      |
+| US-04 | Manage project members              | Project Manager | M        | FR-12               | Yes      |
+| US-05 | Create a task                       | Team Member     | M        | FR-20, FR-22, FR-26 | Yes      |
+| US-06 | Change a task's status on the board | Team Member     | M        | FR-23, FR-30        | Yes      |
+| US-07 | View a project's progress           | Team Member     | M        | FR-31               | Yes      |
+| US-08 | Delete a task                       | Project Manager | M        | FR-25               | Yes      |
+| US-09 | Filter a project's tasks            | Team Member     | M        | FR-32               | Yes      |
+| US-10 | View "My tasks"                     | Team Member     | S        | FR-33               | Post-MVP |
+| US-11 | Archive a project                   | Project Manager | S        | FR-14               | Post-MVP |
+| US-12 | Manage task assignees               | Team Member     | M        | FR-24               | Yes      |
+| US-13 | Comment on a task                   | Team Member     | M        | FR-27               | Yes      |
+| US-14 | Delete a project                    | Project Manager | M        | FR-15               | Yes      |
+| US-15 | Search projects and see dashboard   | User            | M        | FR-16, FR-34        | Yes      |
 
 > US-09 and US-12 – US-15 were added or promoted in Class 3 (see [implementation-plan.md](implementation-plan.md)).
 

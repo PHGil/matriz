@@ -31,12 +31,81 @@ Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope).
 | [docs/constraints.md](docs/constraints.md)   | Constraints, assumptions, security and privacy, pending decisions, questions for the client. |
 | [docs/architecture.md](docs/architecture.md) | Architecture decision (modular monolith), components, ADRs, consistency review.              |
 | [docs/database.md](docs/database.md)         | Data model, business rules and Mermaid ER diagram.                                           |
-| [openapi.yaml](openapi.yaml)                 | OpenAPI 3.1 contract (login, create/update task, project progress).                          |
+| [openapi.yaml](openapi.yaml)                 | OpenAPI 3.1 contract of the MVP API (authentication via Keycloak).                           |
 | [docs/ui/](docs/ui/)                         | Low-fidelity wireframe of the project board (`wireframe.svg` / `wireframe.png`).             |
+| [docs/implementation-plan.md](docs/implementation-plan.md) | Scope reconciliation, access rules, technical decisions and increments (Class 3). |
 | [AGENTS.md](AGENTS.md)                       | Instructions for AI agents working in this repository.                                       |
 
 ## Current status
 
-**Architecture phase (v0.1).** There is no code yet. The requirements are based on a short client description and a set of assumptions still to be validated (see [docs/constraints.md](docs/constraints.md#2-assumptions)). Architecture, data model, API contract and wireframe are defined (Architecture Pack); implementation is the next phase.
+**Implementation phase (Class 3).** Progress per increment in [docs/implementation-plan.md](docs/implementation-plan.md#4-increments).
 
-**Planned stack:** Java + Quarkus (REST API), Angular (SPA), PostgreSQL.
+**Stack:** Java 17 + Quarkus 3.40 LTS (REST API), Angular 22 (SPA), PostgreSQL 18, Keycloak 26 (authentication).
+
+## Running locally
+
+### Requirements
+
+- Docker with Docker Compose
+- Java 17+ (Maven is provided by the wrapper `./mvnw`)
+- Node.js 26 LTS (`nvm use` reads [.nvmrc](.nvmrc))
+
+### 1. Configuration
+
+```bash
+cp .env.example .env          # fictitious local values; .env is never committed
+ln -s ../.env backend/.env    # Quarkus reads .env from its working directory
+```
+
+PostgreSQL is exposed on port **5432** and Keycloak on **8180** (change `DB_PORT` in `.env` if needed).
+
+### 2. Infrastructure (PostgreSQL + Keycloak)
+
+```bash
+docker compose up -d
+```
+
+- Creates the `matriz` database and a separate `keycloak` database on first start.
+- Imports the Keycloak realm `matriz` from [keycloak/matriz-realm.json](keycloak/matriz-realm.json) only if it does not exist yet.
+- Keycloak console: <http://localhost:8180/admin/matriz/console> (realm administrator `admin@matriz.test`).
+
+### 3. Backend (schema and demo data)
+
+```bash
+cd backend
+./mvnw quarkus:dev            # http://localhost:8080 — API under /api/v1, health at /q/health
+```
+
+On start, Flyway applies the schema ([V1__schema.sql](backend/src/main/resources/db/migration/V1__schema.sql)) and, in the `dev` profile only, the demo data ([R__demo_data.sql](backend/src/main/resources/db/seed/R__demo_data.sql)). The seed is idempotent: restarting never wipes or duplicates data.
+
+### 4. Frontend
+
+```bash
+cd frontend
+npm install
+npm start                     # http://localhost:4200 — /api is proxied to the backend
+```
+
+### Demo accounts
+
+All demo users share the password set in `MATRIZ_DEMO_PASSWORD` in your `.env`.
+
+| User                | Role                                                |
+| ------------------- | --------------------------------------------------- |
+| `ana@matriz.test`   | Manager of "Website 2027"                           |
+| `bruno@matriz.test` | Member of "Website 2027", Manager of "Intranet"     |
+| `carla@matriz.test` | Member of "Intranet" (no access to "Website 2027")  |
+| `admin@matriz.test` | Realm administrator in Keycloak (accounts, FR-03/04) |
+
+### Tests
+
+```bash
+cd backend && ./mvnw test     # needs Docker (PostgreSQL started by Quarkus Dev Services)
+cd frontend && npm test -- --watch=false
+```
+
+### Reset local data
+
+```bash
+docker compose down -v        # deletes the PostgreSQL volume (application and Keycloak data)
+```

@@ -28,17 +28,17 @@
 
 **Modular monolith**: a single Quarkus backend exposing a REST API, consumed by an Angular SPA, with a PostgreSQL database.
 
-| ID     | Decision                                                                                                                                                                                                             | Closes |
-| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| ADR-01 | Architectural style: modular monolith, REST API + SPA.                                                                                                                                                               | D-03   |
-| ADR-02 | Backend: Java + Quarkus. Frontend: Angular (TypeScript).                                                                                                                                                             | D-01   |
-| ADR-03 | Database: PostgreSQL (relational; data is strongly relational, see [database.md](database.md)).                                                                                                                      | D-02   |
-| ADR-04 | API: REST/JSON, versioned under `/api/v1`, contract in [openapi.yaml](../openapi.yaml). Errors as `application/problem+json` (RFC 9457).                                                                             | D-03   |
-| ADR-05 | ~~Authentication: opaque session token in an `HttpOnly`, `Secure`, `SameSite=Strict` cookie, stored hashed in the database.~~ **Superseded by ADR-08 (Class 3).**                                                   | —      |
-| ADR-06 | Concurrency: last write wins, no versioning (EC-01).                                                                                                                                                                 | —      |
-| ADR-07 | Progress (FR-31) is computed on read with an aggregate query; not stored.                                                                                                                                            | —      |
+| ID     | Decision                                                                                                                                                                                                                                                                                                                                                                                                       | Closes |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| ADR-01 | Architectural style: modular monolith, REST API + SPA.                                                                                                                                                                                                                                                                                                                                                         | D-03   |
+| ADR-02 | Backend: Java + Quarkus. Frontend: Angular (TypeScript).                                                                                                                                                                                                                                                                                                                                                       | D-01   |
+| ADR-03 | Database: PostgreSQL (relational; data is strongly relational, see [database.md](database.md)).                                                                                                                                                                                                                                                                                                                | D-02   |
+| ADR-04 | API: REST/JSON, versioned under `/api/v1`, contract in [openapi.yaml](../openapi.yaml). Errors as `application/problem+json` (RFC 9457).                                                                                                                                                                                                                                                                       | D-03   |
+| ADR-05 | ~~Authentication: opaque session token in an `HttpOnly`, `Secure`, `SameSite=Strict` cookie, stored hashed in the database.~~ **Superseded by ADR-08 (Class 3).**                                                                                                                                                                                                                                              | —      |
+| ADR-06 | Concurrency: last write wins, no versioning (EC-01).                                                                                                                                                                                                                                                                                                                                                           | —      |
+| ADR-07 | Progress (FR-31) is computed on read with an aggregate query; not stored.                                                                                                                                                                                                                                                                                                                                      | —      |
 | ADR-08 | **Authentication with Keycloak (OIDC), Class 3.** Realm `matriz`; Angular is a public client using Authorization Code + PKCE and sends the access token as `Bearer` to the API; Quarkus (`quarkus-oidc`, service mode) validates the JWT. Access token lifetime 5 min, refreshed silently while the Keycloak session is valid. Accounts, passwords and deactivation are managed in the Keycloak admin console. | —      |
-| ADR-09 | **Local user projection.** `app_user` mirrors Keycloak users (id = Keycloak `sub`): created/updated on each authenticated request if needed, and synchronised from the Keycloak Admin API at startup and every 5 minutes, so users who never logged in can be added as members and deactivation is reflected (EC-03). | —      |
+| ADR-09 | **Local user projection.** `app_user` mirrors Keycloak users (id = Keycloak `sub`): created/updated on each authenticated request if needed, and synchronised from the Keycloak Admin API at startup and every 5 minutes, so users who never logged in can be added as members and deactivation is reflected (EC-03).                                                                                          | —      |
 
 **Justification:** the MVP has four small, tightly related domains (accounts, projects, members, tasks) sharing one database and needing transactional rules (e.g. EC-02: removing a member unassigns their tasks). Microservices would add distributed consistency and operational cost without any benefit at this scale. A modular monolith keeps the simplicity of a single deployable while enforcing boundaries between modules, which keeps permission rules testable (NFR-09) and allows future extraction if needed.
 
@@ -68,12 +68,12 @@ flowchart LR
 
 ### 4.1 Frontend (Angular SPA)
 
-| Area     | Responsibility                                                      | US            |
-| -------- | ------------------------------------------------------------------- | ------------- |
+| Area     | Responsibility                                                                                       | US            |
+| -------- | ---------------------------------------------------------------------------------------------------- | ------------- |
 | auth     | Redirect to the Keycloak login page (PKCE), token refresh, logout; redirect to login on 401 (EC-07). | US-01         |
-| admin    | *None in the app*: accounts are managed in the Keycloak admin console (ADR-08). | US-02         |
-| projects | Project list, create/edit project, member management.               | US-03, US-04  |
-| board    | Board with 3 status columns, task form, progress indicator, delete. | US-05 – US-08 |
+| admin    | *None in the app*: accounts are managed in the Keycloak admin console (ADR-08).                      | US-02         |
+| projects | Project list, create/edit project, member management.                                                | US-03, US-04  |
+| board    | Board with 3 status columns, task form, progress indicator, delete.                                  | US-05 – US-08 |
 
 The SPA only hides actions the user cannot perform; it never enforces permissions (NFR-03). Angular's default output escaping covers EC-08 / S-09.
 
@@ -81,8 +81,8 @@ The SPA only hides actions the user cannot perform; it never enforces permission
 
 | Module   | Responsibility                                                                                                                                       | FR / NFR                                  |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| auth     | Validates the Keycloak JWT on every request (`quarkus-oidc`), resolves the current local user, `GET /auth/me`.                                       | FR-01, FR-02, S-06                       |
-| users    | Local user projection synchronised from Keycloak (ADR-09); active-user directory for adding members.                                                | FR-03, FR-04, EC-03                      |
+| auth     | Validates the Keycloak JWT on every request (`quarkus-oidc`), resolves the current local user, `GET /auth/me`.                                       | FR-01, FR-02, S-06                        |
+| users    | Local user projection synchronised from Keycloak (ADR-09); active-user directory for adding members.                                                 | FR-03, FR-04, EC-03                       |
 | projects | Projects (CRUD, search, deletion), membership and roles (Manager/Member), visibility rules, dashboard counts.                                        | FR-10 – FR-13, FR-15, FR-16, FR-34, EC-04 |
 | tasks    | Tasks, status changes, filters, assignees, comments, deletion by Manager, progress aggregation.                                                      | FR-20 – FR-27, FR-30 – FR-32              |
 | shared   | Authorisation checks (`isMember`, `isManager`, `isAdmin`), input validation, error mapping (404 for unauthorised, EC-05), audit timestamps (NFR-08). | NFR-03, NFR-08, S-03, S-09                |
@@ -122,8 +122,8 @@ Hosting remains open (**D-04**).
 | ----- | ------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | AA-01 | The Administrator is a normal user with an extra flag; they can also create/join projects (FR-10 says "any active user"). | Assumption |
 | AA-02 | A single deployable is enough for availability needs; no high-availability requirement stated.                            | Assumption |
-| AA-03 | ~~Lockout abuse mitigation~~ — obsolete: lockout (NFR-04) removed in Class 3.                                                                              | Closed     |
-| AA-04 | Initial password set by the Administrator in Keycloak (IMP-11).                                                                                            | Closed     |
+| AA-03 | ~~Lockout abuse mitigation~~ — obsolete: lockout (NFR-04) removed in Class 3.                                             | Closed     |
+| AA-04 | Initial password set by the Administrator in Keycloak (IMP-11).                                                           | Closed     |
 | AA-05 | Hosting and deployment (D-04), SSO/2FA (D-06), retention (D-07) and user deletion (D-08) remain open.                     | Pending    |
 
 ## 7. Consistency review (Exercise 5)

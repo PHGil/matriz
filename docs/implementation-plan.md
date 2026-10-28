@@ -4,18 +4,18 @@
 
 ## 1. Scope reconciliation (Lab Sheet 03 vs approved MVP)
 
-| #   | Lab Sheet 03 asks for                        | Approved MVP (Class 1/2)                      | Resolution (approved by the product owner)                                                                                                                    |
-| --- | -------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Several assignees per task                   | At most one assignee (FR-24)                  | **Adopt several assignees.** New `TASK_ASSIGNEE` table; FR-24 rewritten.                                                                                      |
-| 2   | Task comments                                | Out of scope (W)                              | **In scope** (FR-27). Author and date set by the backend.                                                                                                     |
-| 3   | Delete projects                              | Not specified (only archive, S)               | **In scope** (FR-15). Manager only; cascades to members, tasks, assignments and comments.                                                                     |
-| 4   | Project search by name; task filters         | FR-32 (S, post-MVP)                           | **In scope**: search projects by name (FR-16) and filter tasks by status and priority (FR-32 promoted to M).                                                  |
-| 5   | Home dashboard with counts per status        | Progress per project (FR-31)                  | **In scope** (FR-34): accessible projects with counts per status and link to detail.                                                                          |
-| 6   | Field rules from the Lab 02 example          | Name 1–100, title 1–200, priority optional    | **Adopt the lab values**: project name 3–100, description ≤ 1000; task title 3–150, description ≤ 2000, priority required (default `MEDIUM`); comment 1–2000. |
+| #   | Lab Sheet 03 asks for                        | Approved MVP (Class 1/2)                      | Resolution (approved by the product owner)                                                                                                                                       |
+| --- | -------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Several assignees per task                   | At most one assignee (FR-24)                  | **Adopt several assignees.** New `TASK_ASSIGNEE` table; FR-24 rewritten.                                                                                                         |
+| 2   | Task comments                                | Out of scope (W)                              | **In scope** (FR-27). Author and date set by the backend.                                                                                                                        |
+| 3   | Delete projects                              | Not specified (only archive, S)               | **In scope** (FR-15). Manager only; cascades to members, tasks, assignments and comments.                                                                                        |
+| 4   | Project search by name; task filters         | FR-32 (S, post-MVP)                           | **In scope**: search projects by name (FR-16) and filter tasks by status and priority (FR-32 promoted to M).                                                                     |
+| 5   | Home dashboard with counts per status        | Progress per project (FR-31)                  | **In scope** (FR-34): accessible projects with counts per status and link to detail.                                                                                             |
+| 6   | Field rules from the Lab 02 example          | Name 1–100, title 1–200, priority optional    | **Adopt the lab values**: project name 3–100, description ≤ 1000; task title 3–150, description ≤ 2000, priority required (default `MEDIUM`); comment 1–2000.                    |
 | 7   | Demo accounts by seed; registration optional | Accounts created by the Administrator (FR-03) | **Both**: demo accounts seeded in the Keycloak realm import; accounts managed in the Keycloak admin console (FR-03/04); members FR-12 implemented. **Lockout (NFR-04) removed.** |
-| 8   | Pagination "if defined in the contract"      | Not defined                                   | **No pagination** (A-08: ≤ 500 tasks per project). Counts come from dedicated aggregates.                                                                     |
-| 9   | Layout adapts to different widths            | Desktop ≥ 1280 px (A-07, NFR-06)              | Fluid layout that stays usable on narrower windows; no mobile-specific design.                                                                                |
-| 10  | Session lifecycle documented                 | ADR-05: opaque token in cookie                | **Replaced by Keycloak** (ADR-08, ADR-09): OIDC Authorization Code + PKCE, bearer tokens. Lifecycle documented in OpenAPI and README.                          |
+| 8   | Pagination "if defined in the contract"      | Not defined                                   | **No pagination** (A-08: ≤ 500 tasks per project). Counts come from dedicated aggregates.                                                                                        |
+| 9   | Layout adapts to different widths            | Desktop ≥ 1280 px (A-07, NFR-06)              | Fluid layout that stays usable on narrower windows; no mobile-specific design.                                                                                                   |
+| 10  | Session lifecycle documented                 | ADR-05: opaque token in cookie                | **Replaced by Keycloak** (ADR-08, ADR-09): OIDC Authorization Code + PKCE, bearer tokens. Lifecycle documented in OpenAPI and README.                                            |
 
 Out of scope still: self-registration, password recovery (D-05), "My tasks" (FR-33), archive (FR-14), change own password (FR-05), notifications, real-time updates.
 
@@ -23,16 +23,16 @@ Out of scope still: self-registration, password recovery (D-05), "My tasks" (FR-
 
 Non-members of a project receive **404** for the project and everything under it (EC-05). Members who lack the required role receive **403**.
 
-| Action                                             | Administrator\* | Manager | Member | Other user |
-| -------------------------------------------------- | --------------- | ------- | ------ | ---------- |
-| Create project                                     | ✓               | ✓       | ✓      | ✓          |
-| View project, tasks, members, comments, progress   | —               | ✓       | ✓      | 404        |
-| Edit / delete project                              | —               | ✓       | 403    | 404        |
-| Add / remove members                               | —               | ✓       | 403    | 404        |
-| Create / edit task, change status and priority     | —               | ✓       | ✓      | 404        |
-| Delete task                                        | —               | ✓       | 403    | 404        |
-| Add / remove assignees (eligible = active members) | —               | ✓       | ✓      | 404        |
-| Add / list comments                                | —               | ✓       | ✓      | 404        |
+| Action                                             | Administrator\*        | Manager | Member | Other user |
+| -------------------------------------------------- | ---------------------- | ------- | ------ | ---------- |
+| Create project                                     | ✓                      | ✓       | ✓      | ✓          |
+| View project, tasks, members, comments, progress   | —                      | ✓       | ✓      | 404        |
+| Edit / delete project                              | —                      | ✓       | 403    | 404        |
+| Add / remove members                               | —                      | ✓       | 403    | 404        |
+| Create / edit task, change status and priority     | —                      | ✓       | ✓      | 404        |
+| Delete task                                        | —                      | ✓       | 403    | 404        |
+| Add / remove assignees (eligible = active members) | —                      | ✓       | ✓      | 404        |
+| Add / list comments                                | —                      | ✓       | ✓      | 404        |
 | Create / deactivate / reactivate accounts          | Keycloak admin console | —       | —      | —          |
 
 \* The Administrator has no access to project content by being admin (A-03); they only get the project rights from their own memberships (AA-01).
@@ -41,42 +41,43 @@ Identity (project manager, comment author, assignment date) is always taken from
 
 ## 3. Technical decisions for implementation
 
-| ID     | Decision                                                                                                                                                                                                                               | Status                 |
-| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| IMP-01 | Repository layout: `backend/` (Quarkus, Maven), `frontend/` (Angular), `keycloak/` (realm import), `docker-compose.yml` (PostgreSQL + Keycloak), `.env.example`.                                                                        | Confirmed              |
-| IMP-02 | Java 17 + latest Quarkus 3.x LTS: `quarkus-rest`, `rest-jackson`, `hibernate-orm-panache`, `jdbc-postgresql`, `flyway`, `hibernate-validator`, `oidc`, `scheduler`, `keycloak-admin-rest-client`.                                        | Confirmed              |
-| IMP-03 | ~~bcrypt password hashing~~ — not needed: Keycloak owns passwords (ADR-08).                                                                                                                                                            | Removed                |
-| IMP-04 | Keycloak 26.x, realm `matriz`: public client `matriz-frontend` (Authorization Code + PKCE S256, redirect `http://localhost:4200/*`); confidential client `matriz-backend` with service account role `view-users` (user sync); access token 5 min; SSO session idle 30 min / max 8 h; brute-force detection off; login pages in English (accepted exception to NFR-05). | Confirmed              |
-| IMP-05 | `quarkus-oidc` in service (bearer) mode validates the JWT; every resource requires authentication; a `CurrentUser` bean maps `sub`/`name`/`email` to `app_user` (creates it if missing); authorisation checks in services (`ProjectAccess`). | Confirmed              |
-| IMP-06 | Schema via Flyway migrations (`db/migration`). Demo data: users in the Keycloak realm import (fixed ids, fictitious passwords, imported only if the realm does not exist) + Flyway location `db/seed` (`dev` only) with projects/tasks for those ids. Never wipes data. | Confirmed              |
-| IMP-07 | Frontend: Angular 22 on Node.js 26 LTS (supported: `^26.0.0`); `keycloak-angular`/`keycloak-js` (login redirect, silent token refresh, logout); bearer token added only to API calls; router guards; 401 → login with "Sessão expirada"; API base URL in one config file; dev proxy `/api → localhost:8080`. | Confirmed              |
-| IMP-08 | Status changes from the board through a "Mover para" action (as in the wireframe menu); drag-and-drop is optional.                                                                                                                     | Confirmed              |
-| IMP-09 | Backend tests with `@QuarkusTest` + REST Assured against a PostgreSQL started by Quarkus Dev Services (Docker); users simulated with `@TestSecurity` + `@OidcSecurity` (`quarkus-test-security-oidc`), so tests do not need Keycloak.     | Confirmed              |
-| IMP-10 | Local development runs over HTTP (Keycloak in `start-dev`); HTTPS (NFR-02) is provided by the reverse proxy in deployment (D-04).                                                                                                      | Confirmed              |
-| IMP-11 | Initial password: the Administrator sets it in the Keycloak admin console (marked *temporary*, so the user changes it at first login) and communicates it out-of-band (relates to **D-05**). | Confirmed              |
-| IMP-12 | ~~Lockout mitigation~~ — not applicable: lockout (NFR-04) removed by the product owner.                                                                                                                                                 | Removed                |
-| IMP-13 | User sync (ADR-09): scheduled job at startup and every 5 min reads users from the Keycloak Admin API (`matriz-backend` service account) and upserts `app_user` (name, email, active).                                                   | Confirmed              |
-| IMP-14 | Keycloak persists in the same PostgreSQL server, separate database `keycloak` (created by an init script); credentials only in `.env`.                                                                                                 | Confirmed              |
+| ID     | Decision                                                                                                                                                                                                                                                                                                                                                               | Status    |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| IMP-01 | Repository layout: `backend/` (Quarkus, Maven), `frontend/` (Angular), `keycloak/` (realm import), `docker-compose.yml` (PostgreSQL + Keycloak), `.env.example`.                                                                                                                                                                                                       | Confirmed |
+| IMP-02 | Java 17 + latest Quarkus 3.x LTS: `quarkus-rest`, `rest-jackson`, `hibernate-orm-panache`, `jdbc-postgresql`, `flyway`, `hibernate-validator`, `oidc`, `scheduler`, `keycloak-admin-rest-client`.                                                                                                                                                                      | Confirmed |
+| IMP-03 | ~~bcrypt password hashing~~ — not needed: Keycloak owns passwords (ADR-08).                                                                                                                                                                                                                                                                                            | Removed   |
+| IMP-04 | Keycloak 26.x, realm `matriz`: public client `matriz-frontend` (Authorization Code + PKCE S256, redirect `http://localhost:4200/*`); confidential client `matriz-backend` with service account role `view-users` (user sync); access token 5 min; SSO session idle 30 min / max 8 h; brute-force detection off; login pages in English (accepted exception to NFR-05). | Confirmed |
+| IMP-05 | `quarkus-oidc` in service (bearer) mode validates the JWT; every resource requires authentication; a `CurrentUser` bean maps `sub`/`name`/`email` to `app_user` (creates it if missing); authorisation checks in services (`ProjectAccess`).                                                                                                                           | Confirmed |
+| IMP-06 | Schema via Flyway migrations (`db/migration`). Demo data: users in the Keycloak realm import (fixed ids, fictitious passwords, imported only if the realm does not exist) + Flyway location `db/seed` (`dev` only) with projects/tasks for those ids. Never wipes data.                                                                                                | Confirmed |
+| IMP-07 | Frontend: Angular 22 on Node.js 26 LTS (supported: `^26.0.0`); `keycloak-angular`/`keycloak-js` (login redirect, silent token refresh, logout); bearer token added only to API calls; router guards; 401 → login with "Sessão expirada"; API base URL in one config file; dev proxy `/api → localhost:8080`.                                                           | Confirmed |
+| IMP-08 | Status changes from the board through a "Mover para" action (as in the wireframe menu); drag-and-drop is optional.                                                                                                                                                                                                                                                     | Confirmed |
+| IMP-09 | Backend tests with `@QuarkusTest` + REST Assured against a PostgreSQL started by Quarkus Dev Services (Docker); users simulated with `@TestSecurity` + `@OidcSecurity` (`quarkus-test-security-oidc`), so tests do not need Keycloak.                                                                                                                                  | Confirmed |
+| IMP-10 | Local development runs over HTTP (Keycloak in `start-dev`); HTTPS (NFR-02) is provided by the reverse proxy in deployment (D-04).                                                                                                                                                                                                                                      | Confirmed |
+| IMP-11 | Initial password: the Administrator sets it in the Keycloak admin console (marked *temporary*, so the user changes it at first login) and communicates it out-of-band (relates to **D-05**).                                                                                                                                                                           | Confirmed |
+| IMP-12 | ~~Lockout mitigation~~ — not applicable: lockout (NFR-04) removed by the product owner.                                                                                                                                                                                                                                                                                | Removed   |
+| IMP-13 | User sync (ADR-09): scheduled job at startup and every 5 min reads users from the Keycloak Admin API (`matriz-backend` service account) and upserts `app_user` (name, email, active).                                                                                                                                                                                  | Confirmed |
+| IMP-14 | Keycloak persists in the same PostgreSQL server, separate database `keycloak` (created by an init script); credentials only in `.env`.                                                                                                                                                                                                                                 | Confirmed |
 
 ## 4. Increments
 
-| Inc | Name                         | Lab ex. | Status      |
-| --- | ---------------------------- | ------- | ----------- |
-| 0   | Scaffold and persistence     | 2       | Not started |
-| 1   | Authentication               | 3       | Not started |
-| 2   | Projects, members, dashboard | 4       | Not started |
-| 3   | Tasks, filters, progress     | 5       | Not started |
-| 4   | Assignees and comments       | 6       | Not started |
+| Inc | Name                         | Lab ex. | Status                           |
+| --- | ---------------------------- | ------- | -------------------------------- |
+| 0   | Scaffold and persistence     | 2       | Done                             |
+| 1   | Authentication               | 3       | Not started                      |
+| 2   | Projects, members, dashboard | 4       | Not started                      |
+| 3   | Tasks, filters, progress     | 5       | Not started                      |
+| 4   | Assignees and comments       | 6       | Not started                      |
 | 5   | Account administration       | —       | Removed (Keycloak admin console) |
-| 6   | Verification                 | 8       | Not started |
-| 7   | Review and delivery          | 9       | Not started |
+| 6   | Verification                 | 8       | Not started                      |
+| 7   | Review and delivery          | 9       | Not started                      |
 
 ### Inc 0 — Scaffold and persistence
 
-- **Components:** `backend/` Quarkus project; `frontend/` Angular project; `docker-compose.yml` (PostgreSQL + Keycloak); `keycloak/matriz-realm.json`; `.env.example`; `.gitignore`; Flyway `V1__schema.sql` (all tables in [database.md](database.md)); `db/seed/V1000__demo_data.sql`.
+- **Components:** `backend/` Quarkus project; `frontend/` Angular project; `docker-compose.yml` (PostgreSQL + Keycloak); `keycloak/matriz-realm.json`; `.env.example`; `.gitignore`; Flyway `V1__schema.sql` (all tables in [database.md](database.md)); `db/seed/R__demo_data.sql`.
 - **Depends on:** nothing.
 - **Acceptance:** `docker compose up -d` starts PostgreSQL and Keycloak with the `matriz` realm and demo users; `./mvnw quarkus:dev` starts and applies migrations + seed; restarting does not re-seed or wipe data; `npm start` serves the Angular app; no real credentials in the repo.
 - **Verification:** `psql` shows tables and demo rows; restart twice and count rows; Keycloak console shows the realm; `/q/health` returns UP.
+- **Result (Inc 0):** Quarkus 3.40.1.1 LTS, Angular 22.2, PostgreSQL 18 (host port 5432), Keycloak 26.8.1. Realm imported with env placeholders resolved (service-account token obtained, 4 demo users listed). Flyway applied `V1` + `R__demo_data`; health UP; after adding a project and deleting a seeded task, a restart reported "No migration necessary" and kept both changes. Seed implemented as an idempotent **repeatable** migration instead of `V1000` (a high version number would block later schema migrations). `ng build` and `ng test` (2 tests) pass on Node 26.
 
 ### Inc 1 — Authentication (US-01)
 
@@ -125,4 +126,4 @@ Covered by the Keycloak admin console (ADR-08) and the user sync (Inc 1). US-02 
 | Node.js 25 (currently installed) is not supported by Angular 22.        | Use Node.js 26 LTS (Angular 22 supports `^26.0.0`).            |
 | Dev Services and Docker Compose both need Docker.                       | Docker is a documented prerequisite.                           |
 | Scope grew beyond the original MVP (comments, deletion, N:M assignees). | Implemented last within each area; documented in requirements. |
-| Deactivated user keeps API access until the access token expires.      | Token lifetime 5 min; documented in US-02 AC3 and S-06.        |
+| Deactivated user keeps API access until the access token expires.       | Token lifetime 5 min; documented in US-02 AC3 and S-06.        |
