@@ -1,6 +1,43 @@
 # Local configuration and secrets
 .env
+.env.*
+!.env.example
 
-# Editors / OS
-.DS_Store
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/coverage
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
 .idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+
+# Miscellaneous
+/.angular/cache
+.cache
+.eslintcache
+.sass-cache/
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
