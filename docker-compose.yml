@@ -9,19 +9,19 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - '${DB_PORT:-5432}:5432'
     volumes:
       - postgres-data:/var/lib/postgresql
       - ./docker/postgres/init-keycloak-db.sh:/docker-entrypoint-initdb.d/init-keycloak-db.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}']
       interval: 5s
       timeout: 3s
       retries: 20
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.8.1
-    command: ["start-dev", "--import-realm", "--http-port=8180"]
+    command: ['start-dev', '--import-realm', '--http-port=8180']
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
@@ -29,11 +29,11 @@ services:
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
-      KC_HEALTH_ENABLED: "true"
+      KC_HEALTH_ENABLED: 'true'
       MATRIZ_BACKEND_CLIENT_SECRET: ${MATRIZ_BACKEND_CLIENT_SECRET}
       MATRIZ_DEMO_PASSWORD: ${MATRIZ_DEMO_PASSWORD}
     ports:
-      - "8180:8180"
+      - '8180:8180'
     volumes:
       - ./keycloak:/opt/keycloak/data/import:ro
     depends_on:
