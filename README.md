@@ -112,6 +112,10 @@ cd backend && ./mvnw test     # needs Docker (PostgreSQL started by Quarkus Dev 
 cd frontend && npm test -- --watch=false
 ```
 
+### Continuous integration
+
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master` (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml).
+
 ### Reset local data
 
 ```bash
