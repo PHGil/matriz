@@ -4,8 +4,8 @@
   "displayName": "Matriz",
   "sslRequired": "external",
   "registrationAllowed": false,
-  "registrationEmailAsUsername": true,
-  "loginWithEmailAllowed": true,
+  "registrationEmailAsUsername": false,
+  "loginWithEmailAllowed": false,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": false,
   "bruteForceProtected": false,
@@ -72,7 +72,7 @@
     },
     {
       "id": "9a6f0c2e-0000-4000-8000-000000000001",
-      "username": "admin@matriz.test",
+      "username": "admin",
       "email": "admin@matriz.test",
       "emailVerified": true,
       "firstName": "Admin",
@@ -93,7 +93,7 @@
     },
     {
       "id": "9a6f0c2e-0000-4000-8000-000000000011",
-      "username": "ana@matriz.test",
+      "username": "ana",
       "email": "ana@matriz.test",
       "emailVerified": true,
       "firstName": "Ana",
@@ -109,7 +109,7 @@
     },
     {
       "id": "9a6f0c2e-0000-4000-8000-000000000012",
-      "username": "bruno@matriz.test",
+      "username": "bruno",
       "email": "bruno@matriz.test",
       "emailVerified": true,
       "firstName": "Bruno",
@@ -125,7 +125,7 @@
     },
     {
       "id": "9a6f0c2e-0000-4000-8000-000000000013",
-      "username": "carla@matriz.test",
+      "username": "carla",
       "email": "carla@matriz.test",
       "emailVerified": true,
       "firstName": "Carla",

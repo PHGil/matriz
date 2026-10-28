@@ -35,13 +35,13 @@ Priority using MoSCoW: **M** (Must), **S** (Should), **C** (Could), **W** (Won't
 
 ### 3.1 Accounts and authentication
 
-| ID    | Requirement                                                           | Priority | Rationale                                                                                                            |
-| ----- | --------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
-| FR-01 | The system must allow authentication with email and password.         | M        | Needed to identify users and control access.                                                                         |
-| FR-02 | The system must allow users to log out.                               | M        | Basic security on shared workstations.                                                                               |
-| FR-03 | The Administrator must be able to create user accounts (name, email). | M        | Internal tool: access is controlled by the organisation (A-02). Done in the Keycloak admin console (ADR-08).         |
-| FR-04 | The Administrator must be able to deactivate and reactivate accounts. | M        | Allows revoking access (e.g. employees leaving) without losing history. Done in the Keycloak admin console (ADR-08). |
-| FR-05 | Users must be able to change their own password.                      | S        | Security hygiene; does not block initial use.                                                                        |
+| ID    | Requirement                                                                                         | Priority | Rationale                                                                                                            |
+| ----- | --------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| FR-01 | The system must allow authentication with username and password. *(Changed in Class 3: was email.)* | M        | Needed to identify users and control access.                                                                         |
+| FR-02 | The system must allow users to log out.                                                             | M        | Basic security on shared workstations.                                                                               |
+| FR-03 | The Administrator must be able to create user accounts (name, email).                               | M        | Internal tool: access is controlled by the organisation (A-02). Done in the Keycloak admin console (ADR-08).         |
+| FR-04 | The Administrator must be able to deactivate and reactivate accounts.                               | M        | Allows revoking access (e.g. employees leaving) without losing history. Done in the Keycloak admin console (ADR-08). |
+| FR-05 | Users must be able to change their own password.                                                    | S        | Security hygiene; does not block initial use.                                                                        |
 
 ### 3.2 Projects
 

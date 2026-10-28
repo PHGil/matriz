@@ -35,9 +35,9 @@
 | S-02 | Communication always encrypted via HTTPS/TLS (NFR-02).                                                                                                      |
 | S-03 | Authorisation checked on the server for every request; users never access projects they are not members of (NFR-03, FR-13).                                 |
 | S-04 | ~~Protection against brute-force login attempts (NFR-04).~~ **Removed in Class 3** (product owner decision). Can be re-enabled as a Keycloak realm setting. |
-| S-05 | Login error messages do not reveal whether the email exists. (Keycloak default behaviour.)                                                                  |
+| S-05 | Login error messages do not reveal whether the account exists. (Keycloak default behaviour.)                                                                |
 | S-06 | Deactivated accounts cannot authenticate; access ends within the access-token lifetime (5 min, ADR-08).                                                     |
-| S-07 | Personal data collected is limited to the minimum: name, email and password (GDPR — data minimisation).                                                     |
+| S-07 | Personal data collected is limited to the minimum: name, username, email and password (GDPR — data minimisation).                                           |
 | S-08 | Credentials, keys and secrets are never stored in the repository or written to logs.                                                                        |
 | S-09 | All user input is validated on the server and displayed content is escaped (injection and XSS prevention).                                                  |
 

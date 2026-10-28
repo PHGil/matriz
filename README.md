@@ -14,7 +14,7 @@ Teams need a single place to organise projects, distribute tasks and understand 
 
 ## Planned MVP features
 
-- Email and password authentication; accounts managed by an Administrator.
+- Username and password authentication; accounts managed by an Administrator.
 - Project creation and member management.
 - Tasks with title, description, assignee, priority, due date and status (To Do / In Progress / Done).
 - Task board by status.
@@ -67,7 +67,7 @@ docker compose up -d
 
 - Creates the `matriz` database and a separate `keycloak` database on first start.
 - Imports the Keycloak realm `matriz` from [keycloak/matriz-realm.json](keycloak/matriz-realm.json) only if it does not exist yet.
-- Keycloak console: <http://localhost:8180/admin/matriz/console> (realm administrator `admin@matriz.test`).
+- Keycloak console: <http://localhost:8180/admin/matriz/console> (realm administrator `admin`).
 
 ### 3. Backend (schema and demo data)
 
@@ -96,14 +96,14 @@ npm start                     # http://localhost:4200 — /api is proxied to the
 
 ### Demo accounts
 
-All demo users share the password set in `MATRIZ_DEMO_PASSWORD` in your `.env`.
+All demo users share the password `password` (value of `MATRIZ_DEMO_PASSWORD` in `.env`; fictitious, local only).
 
-| User                | Role                                                 |
-| ------------------- | ---------------------------------------------------- |
-| `ana@matriz.test`   | Manager of "Website 2027"                            |
-| `bruno@matriz.test` | Member of "Website 2027", Manager of "Intranet"      |
-| `carla@matriz.test` | Member of "Intranet" (no access to "Website 2027")   |
-| `admin@matriz.test` | Realm administrator in Keycloak (accounts, FR-03/04) |
+| Username | Role                                                 |
+| -------- | ---------------------------------------------------- |
+| `ana`    | Manager of "Website 2027"                            |
+| `bruno`  | Member of "Website 2027", Manager of "Intranet"      |
+| `carla`  | Member of "Intranet" (no access to "Website 2027")   |
+| `admin`  | Realm administrator in Keycloak (accounts, FR-03/04) |
 
 ### Tests
 

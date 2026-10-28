@@ -30,12 +30,12 @@
 
 ### US-01 — Log in and log out (M)
 
-**As a** user, **I want** to log in with my email and password and log out whenever I want, **so that** I can access only my work securely.
+**As a** user, **I want** to log in with my username and password and log out whenever I want, **so that** I can access only my work securely.
 
 **Acceptance criteria**
 
-1. **Given** an active account with email `ana@company.com`, **When** the user submits the correct email and password, **Then** she sees the list of her projects.
-2. **Given** an active account, **When** a wrong password is submitted, **Then** access is denied with the message "Invalid email or password" (the same message used for non-existent emails).
+1. **Given** an active account with username `ana`, **When** the user submits the correct username and password, **Then** she sees the list of her projects.
+2. **Given** an active account, **When** a wrong password is submitted, **Then** access is denied with the message "Invalid username or password" (the same message used for non-existent usernames).
 3. *(Removed in Class 3 together with NFR-04.)*
 4. **Given** a deactivated account, **When** correct credentials are submitted, **Then** access is denied.
 5. **Given** an authenticated user, **When** they log out, **Then** they are redirected to the login screen and any protected page requires authenticating again.
