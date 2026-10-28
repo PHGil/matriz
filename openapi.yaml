@@ -1,76 +1,332 @@
 openapi: 3.1.0
 info:
   title: Matriz API
-  version: 0.1.0
+  version: 0.3.0
   description: |
-    Simplified REST contract for the Matriz MVP (Class 2).
-    Covers login (US-01), task creation (US-05), task update / status change (US-06)
-    and project progress (US-07). See docs/architecture.md and docs/database.md.
+    REST contract for the Matriz MVP (Class 3). See docs/architecture.md,
+    docs/database.md and docs/implementation-plan.md (access rules).
 
-    Non-members of a project always receive 404, never 403, so the existence of
-    the resource is not revealed (EC-05). All traffic must use HTTPS (NFR-02).
+    **Authentication lifecycle (ADR-08).** Login, logout and accounts are handled
+    by Keycloak (realm `matriz`), not by this API. The Angular app obtains an
+    access token with OIDC Authorization Code + PKCE (client `matriz-frontend`)
+    and sends it as `Authorization: Bearer <token>`. Access tokens expire after
+    5 minutes and are refreshed silently while the Keycloak session is valid
+    (idle 30 min, max 8 h). Logout ends the Keycloak session. Any request with a
+    missing, invalid or expired token gets `401`.
+
+    **Authorisation.** Non-members of a project receive `404` for the project
+    and everything under it, so its existence is not revealed (EC-05). Members
+    without the required role receive `403`. Identity (project manager,
+    comment author) always comes from the token, never from the request.
+
+    **Validation.** Text fields are trimmed before validation; whitespace-only
+    values are rejected. Errors use RFC 9457 `application/problem+json`.
+
+    All traffic must use HTTPS in deployment (NFR-02).
 servers:
-  - url: https://matriz.example.com/api/v1
-    description: Placeholder; hosting is pending (D-04).
+  - url: http://localhost:8080/api/v1
+    description: Local development. Production hosting is pending (D-04).
 security:
-  - sessionCookie: []
+  - keycloak: []
 tags:
   - name: auth
-    description: Authentication and sessions (US-01).
-  - name: tasks
-    description: Task management within a project (US-05, US-06).
+    description: Authenticated user (US-01). Login/logout happen in Keycloak.
   - name: projects
-    description: Project information and progress (US-07).
+    description: Projects, search, dashboard counts and progress (US-03, US-07, US-14, US-15).
+  - name: members
+    description: Project membership (US-04).
+  - name: users
+    description: Directory of active users, used to add members.
+  - name: tasks
+    description: Tasks and filters (US-05, US-06, US-08, US-09).
+  - name: assignees
+    description: Task assignees (US-12).
+  - name: comments
+    description: Task comments (US-13).
 
 paths:
-  /auth/login:
-    post:
+  /auth/me:
+    get:
       tags: [auth]
-      operationId: login
-      summary: Log in with email and password
-      description: |
-        On success sets an HttpOnly, Secure, SameSite=Strict session cookie.
-        Wrong password, unknown email, locked account (5 failures / 15 min, NFR-04)
-        and deactivated account all return the same 401 response (S-05).
-      security: []
+      operationId: getCurrentUser
+      summary: Get the authenticated user
+      description: Creates or updates the local user record from the token claims on first use (ADR-09).
+      responses:
+        '200':
+          description: Current user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+
+  /projects:
+    get:
+      tags: [projects]
+      operationId: listProjects
+      summary: List the user's projects with task counts (dashboard)
+      description: Only projects where the user is Manager or Member (FR-13). Sorted by name.
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Case-insensitive search on the project name (FR-16).
+          schema:
+            type: string
+            maxLength: 100
+      responses:
+        '200':
+          description: Projects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectSummary'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+    post:
+      tags: [projects]
+      operationId: createProject
+      summary: Create a project
+      description: The authenticated user becomes its Manager (FR-10).
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: '#/components/schemas/ProjectCreate'
       responses:
-        '204':
-          description: Authenticated.
+        '201':
+          description: Project created.
           headers:
-            Set-Cookie:
-              description: Session cookie.
+            Location:
               schema:
                 type: string
-                example: matriz_session=<token>; Path=/; Secure; HttpOnly; SameSite=Strict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          description: Invalid email or password.
+          $ref: '#/components/responses/Unauthenticated'
+
+  /projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [projects]
+      operationId: getProject
+      summary: Get a project
+      responses:
+        '200':
+          description: Project.
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-              example:
-                type: about:blank
-                title: Invalid email or password
-                status: 401
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [projects]
+      operationId: updateProject
+      summary: Edit a project (Manager only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        '200':
+          description: Project updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [projects]
+      operationId: deleteProject
+      summary: Delete a project (Manager only)
+      description: Deletes members, tasks, assignments and comments with it (FR-15).
+      responses:
+        '204':
+          description: Project deleted.
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/progress:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [projects]
+      operationId: getProjectProgress
+      summary: Get task counts per status and percentage done
+      description: |
+        Counts always cover all tasks of the project, regardless of filters.
+        `percentDone` = round(100 × done / total); `null` when there are no tasks (EC-06).
+      responses:
+        '200':
+          description: Project progress.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectProgress'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/members:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [members]
+      operationId: listMembers
+      summary: List project members (also the eligible assignees)
+      responses:
+        '200':
+          description: Members, Manager first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Member'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [members]
+      operationId: addMember
+      summary: Add a member (Manager only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRef'
+      responses:
+        '201':
+          description: Member added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /projects/{projectId}/members/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/UserId'
+    delete:
+      tags: [members]
+      operationId: removeMember
+      summary: Remove a member (Manager only)
+      description: |
+        Also removes the member's assignments in this project (EC-02).
+        The Manager cannot be removed (EC-04) → 409.
+      responses:
+        '204':
+          description: Member removed.
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /users:
+    get:
+      tags: [users]
+      operationId: searchUsers
+      summary: Search active users (to add as project members)
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Case-insensitive match on name or email.
+          schema:
+            type: string
+            maxLength: 100
+      responses:
+        '200':
+          description: Active users, at most 20, sorted by name.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDirectoryEntry'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
 
   /projects/{projectId}/tasks:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [tasks]
+      operationId: listTasks
+      summary: List tasks, optionally filtered (FR-32)
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/TaskStatus'
+        - name: priority
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/TaskPriority'
+      responses:
+        '200':
+          description: Tasks, most recently updated first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
       tags: [tasks]
       operationId: createTask
-      summary: Create a task in a project
-      description: |
-        Allowed for the project Manager and Members (FR-20). New tasks start as TODO (FR-22).
-        The assignee, if given, must be a member of the project (FR-24).
-      parameters:
-        - $ref: '#/components/parameters/ProjectId'
+      summary: Create a task
+      description: Starts as `TODO`; priority defaults to `MEDIUM`; no assignees (FR-20, FR-22, FR-26).
       requestBody:
         required: true
         content:
@@ -86,7 +342,6 @@ paths:
             Location:
               schema:
                 type: string
-                format: uri-reference
           content:
             application/json:
               schema:
@@ -99,18 +354,31 @@ paths:
           $ref: '#/components/responses/NotFound'
 
   /projects/{projectId}/tasks/{taskId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags: [tasks]
+      operationId: getTask
+      summary: Get a task
+      responses:
+        '200':
+          description: Task.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
     patch:
       tags: [tasks]
       operationId: updateTask
-      summary: Update a task (including its status)
+      summary: Update a task (fields, status, priority)
       description: |
-        Partial update; only the fields sent are changed. Sending `null` clears an
-        optional field. Used by the board to move a task between columns (FR-23).
-        Any status transition is allowed, including reopening (US-06 AC2).
-        Last write wins (EC-01). `updatedAt` is always refreshed (NFR-08).
-      parameters:
-        - $ref: '#/components/parameters/ProjectId'
-        - $ref: '#/components/parameters/TaskId'
+        Partial update; only the fields sent are changed. `null` clears `description`
+        or `dueDate`. Any status transition is allowed (US-06 AC2). Last write wins (EC-01).
       requestBody:
         required: true
         content:
@@ -132,31 +400,110 @@ paths:
           $ref: '#/components/responses/Unauthenticated'
         '404':
           $ref: '#/components/responses/NotFound'
-
-  /projects/{projectId}/progress:
-    get:
-      tags: [projects]
-      operationId: getProjectProgress
-      summary: Get task counts per status and percentage done
-      description: |
-        `percentDone` = round(100 × done / total); `null` when the project has no
-        tasks (EC-06), shown in the UI as "Sem tarefas".
-      parameters:
-        - $ref: '#/components/parameters/ProjectId'
+    delete:
+      tags: [tasks]
+      operationId: deleteTask
+      summary: Delete a task (Manager only)
+      description: Assignments and comments are deleted with it.
       responses:
-        '200':
-          description: Project progress.
+        '204':
+          description: Task deleted.
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/tasks/{taskId}/assignees:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/TaskId'
+    post:
+      tags: [assignees]
+      operationId: addAssignee
+      summary: Assign a user to the task
+      description: The user must be an active project member (FR-24). Duplicate → 409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRef'
+      responses:
+        '201':
+          description: Assignment created.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectProgress'
-              example:
-                projectId: 3f1c2b9e-8d4a-4c1e-9b2f-1a2b3c4d5e6f
-                total: 10
-                todo: 2
-                inProgress: 3
-                done: 5
-                percentDone: 50
+                $ref: '#/components/schemas/UserSummary'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /projects/{projectId}/tasks/{taskId}/assignees/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/TaskId'
+      - $ref: '#/components/parameters/UserId'
+    delete:
+      tags: [assignees]
+      operationId: removeAssignee
+      summary: Remove an assignment
+      responses:
+        '204':
+          description: Assignment removed.
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/tasks/{taskId}/comments:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags: [comments]
+      operationId: listComments
+      summary: List comments, oldest first
+      responses:
+        '200':
+          description: Comments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [comments]
+      operationId: addComment
+      summary: Add a comment
+      description: Author and date are set by the server from the access token (FR-27).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '201':
+          description: Comment created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '404':
@@ -164,10 +511,10 @@ paths:
 
 components:
   securitySchemes:
-    sessionCookie:
-      type: apiKey
-      in: cookie
-      name: matriz_session
+    keycloak:
+      type: openIdConnect
+      description: Keycloak realm `matriz`, client `matriz-frontend` (Authorization Code + PKCE). Send the access token as a Bearer token.
+      openIdConnectUrl: http://localhost:8180/realms/matriz/.well-known/openid-configuration
 
   parameters:
     ProjectId:
@@ -184,23 +531,35 @@ components:
       schema:
         type: string
         format: uuid
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
 
   responses:
     ValidationError:
-      description: Invalid input (e.g. empty title, assignee not a project member).
+      description: Invalid input.
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
           example:
-            type: about:blank
             title: Validation failed
             status: 400
             errors:
               - field: title
-                message: Title is required
+                message: O título deve ter entre 3 e 150 caracteres.
     Unauthenticated:
-      description: Missing, expired or revoked session (EC-07, S-06).
+      description: Missing, invalid or expired access token (EC-07).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Authenticated but not allowed (e.g. Member trying a Manager action).
       content:
         application/problem+json:
           schema:
@@ -212,81 +571,38 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
           example:
-            type: about:blank
             title: Not found
             status: 404
+    Conflict:
+      description: Request conflicts with current state (duplicate, removing the Manager, etc.).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
 
   schemas:
-    LoginRequest:
+    CurrentUser:
       type: object
-      required: [email, password]
-      additionalProperties: false
+      required: [id, name, email]
       properties:
+        id:
+          type: string
+          format: uuid
+          description: Keycloak user id (`sub`).
+        name:
+          type: string
         email:
           type: string
           format: email
-          maxLength: 254
-        password:
-          type: string
-          format: password
-          minLength: 1
 
-    TaskStatus:
-      type: string
-      enum: [TODO, IN_PROGRESS, DONE]
-
-    TaskPriority:
-      type: string
-      enum: [LOW, MEDIUM, HIGH]
-
-    TaskCreate:
+    UserRef:
       type: object
-      required: [title]
+      required: [userId]
       additionalProperties: false
       properties:
-        title:
+        userId:
           type: string
-          minLength: 1
-          maxLength: 200
-          description: Trimmed; whitespace-only is rejected. Stored as plain text (EC-08).
-        description:
-          type: [string, 'null']
-        assigneeId:
-          type: [string, 'null']
           format: uuid
-          description: Must be a member of the project (FR-24).
-        priority:
-          oneOf:
-            - $ref: '#/components/schemas/TaskPriority'
-            - type: 'null'
-        dueDate:
-          type: [string, 'null']
-          format: date
-          description: Past dates are accepted (EC-09).
-
-    TaskUpdate:
-      type: object
-      minProperties: 1
-      additionalProperties: false
-      properties:
-        title:
-          type: string
-          minLength: 1
-          maxLength: 200
-        description:
-          type: [string, 'null']
-        status:
-          $ref: '#/components/schemas/TaskStatus'
-        assigneeId:
-          type: [string, 'null']
-          format: uuid
-        priority:
-          oneOf:
-            - $ref: '#/components/schemas/TaskPriority'
-            - type: 'null'
-        dueDate:
-          type: [string, 'null']
-          format: date
 
     UserSummary:
       type: object
@@ -301,39 +617,101 @@ components:
           type: boolean
           description: false is shown as "(desativado)" (EC-03).
 
-    Task:
+    UserDirectoryEntry:
       type: object
-      required: [id, projectId, title, status, createdAt, updatedAt]
+      required: [id, name, email]
       properties:
         id:
           type: string
           format: uuid
-        projectId:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    ProjectRole:
+      type: string
+      enum: [MANAGER, MEMBER]
+
+    StatusCounts:
+      type: object
+      required: [todo, inProgress, done, total]
+      properties:
+        todo:
+          type: integer
+          minimum: 0
+        inProgress:
+          type: integer
+          minimum: 0
+        done:
+          type: integer
+          minimum: 0
+        total:
+          type: integer
+          minimum: 0
+
+    ProjectCreate:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: [string, 'null']
+          maxLength: 1000
+
+    ProjectUpdate:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: [string, 'null']
+          maxLength: 1000
+
+    Project:
+      type: object
+      required: [id, name, myRole, createdAt, updatedAt]
+      properties:
+        id:
           type: string
           format: uuid
-        title:
+        name:
           type: string
         description:
           type: [string, 'null']
-        status:
-          $ref: '#/components/schemas/TaskStatus'
-        priority:
-          oneOf:
-            - $ref: '#/components/schemas/TaskPriority'
-            - type: 'null'
-        dueDate:
-          type: [string, 'null']
-          format: date
-        assignee:
-          oneOf:
-            - $ref: '#/components/schemas/UserSummary'
-            - type: 'null'
+        myRole:
+          $ref: '#/components/schemas/ProjectRole'
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    ProjectSummary:
+      type: object
+      required: [id, name, myRole, counts]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        myRole:
+          $ref: '#/components/schemas/ProjectRole'
+        counts:
+          $ref: '#/components/schemas/StatusCounts'
 
     ProjectProgress:
       type: object
@@ -358,6 +736,136 @@ components:
           type: [integer, 'null']
           minimum: 0
           maximum: 100
+
+    Member:
+      type: object
+      required: [user, role, addedAt]
+      properties:
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        role:
+          $ref: '#/components/schemas/ProjectRole'
+        addedAt:
+          type: string
+          format: date-time
+
+    TaskStatus:
+      type: string
+      enum: [TODO, IN_PROGRESS, DONE]
+
+    TaskPriority:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+
+    TaskCreate:
+      type: object
+      required: [title]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 150
+          description: Stored as plain text (EC-08).
+        description:
+          type: [string, 'null']
+          maxLength: 2000
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        dueDate:
+          type: [string, 'null']
+          format: date
+          description: Past dates are accepted (EC-09).
+
+    TaskUpdate:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 150
+        description:
+          type: [string, 'null']
+          maxLength: 2000
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        dueDate:
+          type: [string, 'null']
+          format: date
+
+    Task:
+      type: object
+      required:
+        [
+          id,
+          projectId,
+          title,
+          status,
+          priority,
+          assignees,
+          createdAt,
+          updatedAt,
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: [string, 'null']
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        dueDate:
+          type: [string, 'null']
+          format: date
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSummary'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CommentCreate:
+      type: object
+      required: [content]
+      additionalProperties: false
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+
+    Comment:
+      type: object
+      required: [id, taskId, author, content, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        author:
+          $ref: '#/components/schemas/UserSummary'
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
     Problem:
       type: object

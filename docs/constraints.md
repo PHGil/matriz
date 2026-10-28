@@ -4,13 +4,13 @@
 
 ## 1. Known constraints
 
-| ID   | Constraint                                                                                      | Source           |
-| ---- | ----------------------------------------------------------------------------------------------- | ---------------- |
-| C-01 | The application is called **Matriz**.                                                           | Client           |
-| C-02 | It must support organising projects, managing tasks and tracking progress.                      | Client           |
-| C-03 | It is meant to be used by teams (several users collaborating).                                  | Client           |
-| C-04 | In this phase (Lab Sheet 01) no code is implemented; the focus is the specification.            | Academic context |
-| C-05 | Language, framework, database and architecture will only be chosen in the next phase (Class 2). Done: see [architecture.md](architecture.md). | Academic context |
+| ID   | Constraint                                                                                                                                                   | Source           |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| C-01 | The application is called **Matriz**.                                                                                                                        | Client           |
+| C-02 | It must support organising projects, managing tasks and tracking progress.                                                                                   | Client           |
+| C-03 | It is meant to be used by teams (several users collaborating).                                                                                               | Client           |
+| C-04 | In Lab Sheet 01 no code is implemented; the focus is the specification. Implementation starts in Class 3 ([implementation-plan.md](implementation-plan.md)). | Academic context |
+| C-05 | Language, framework, database and architecture will only be chosen in the next phase (Class 2). Done: see [architecture.md](architecture.md).                | Academic context |
 
 ## 2. Assumptions
 
@@ -31,28 +31,28 @@
 
 | ID   | Requirement                                                                                                                                  |
 | ---- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| S-01 | Passwords stored only with a strong salted hashing algorithm (NFR-01).                                                                       |
+| S-01 | Passwords stored only with a strong salted hashing algorithm (NFR-01). Handled by Keycloak (ADR-08).                                          |
 | S-02 | Communication always encrypted via HTTPS/TLS (NFR-02).                                                                                       |
 | S-03 | Authorisation checked on the server for every request; users never access projects they are not members of (NFR-03, FR-13).                  |
-| S-04 | Protection against brute-force login attempts (NFR-04). *Risk: the lockout can be abused to block other users' access; reassess in Class 2.* |
-| S-05 | Login error messages do not reveal whether the email exists.                                                                                 |
-| S-06 | Deactivated accounts cannot authenticate and their active sessions are terminated.                                                           |
+| S-04 | ~~Protection against brute-force login attempts (NFR-04).~~ **Removed in Class 3** (product owner decision). Can be re-enabled as a Keycloak realm setting. |
+| S-05 | Login error messages do not reveal whether the email exists. (Keycloak default behaviour.)                                                   |
+| S-06 | Deactivated accounts cannot authenticate; access ends within the access-token lifetime (5 min, ADR-08).                                       |
 | S-07 | Personal data collected is limited to the minimum: name, email and password (GDPR — data minimisation).                                      |
 | S-08 | Credentials, keys and secrets are never stored in the repository or written to logs.                                                         |
 | S-09 | All user input is validated on the server and displayed content is escaped (injection and XSS prevention).                                   |
 
 ## 4. Pending technical decisions
 
-| ID   | Decision                                                              | When                        |
-| ---- | --------------------------------------------------------------------- | --------------------------- |
-| D-01 | Language, frontend and backend frameworks.                            | **Decided (Class 2):** Java + Quarkus, Angular — [architecture.md](architecture.md) ADR-02 |
-| D-02 | Database and data model.                                              | **Decided (Class 2):** PostgreSQL — [database.md](database.md) |
+| ID   | Decision                                                              | When                                                                                                                          |
+| ---- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| D-01 | Language, frontend and backend frameworks.                            | **Decided (Class 2):** Java + Quarkus, Angular — [architecture.md](architecture.md) ADR-02                                    |
+| D-02 | Database and data model.                                              | **Decided (Class 2):** PostgreSQL — [database.md](database.md)                                                                |
 | D-03 | Architecture (monolith, API + SPA, etc.) and API design.              | **Decided (Class 2):** modular monolith, REST API + SPA — [architecture.md](architecture.md), [openapi.yaml](../openapi.yaml) |
-| D-04 | Hosting and deployment infrastructure.                                | TBD                         |
-| D-05 | Password recovery mechanism (email vs. reset by the Administrator).   | To validate with the client |
-| D-06 | Need for SSO or two-factor authentication.                            | To validate with the client |
-| D-07 | Data retention policy for deactivated accounts and archived projects. | To validate with the client |
-| D-08 | Behaviour when deleting a user (vs. only deactivating).               | To validate with the client |
+| D-04 | Hosting and deployment infrastructure.                                | TBD                                                                                                                           |
+| D-05 | Password recovery mechanism (email vs. reset by the Administrator).   | To validate with the client. MVP: Administrator sets the initial password in the Keycloak admin console (IMP-11, confirmed by the product owner). Keycloak can later provide email recovery.                             |
+| D-06 | Need for SSO or two-factor authentication.                            | To validate with the client. Keycloak (ADR-08) supports both through configuration.                                           |
+| D-07 | Data retention policy for deactivated accounts and archived projects. | To validate with the client                                                                                                   |
+| D-08 | Behaviour when deleting a user (vs. only deactivating).               | To validate with the client                                                                                                   |
 
 ## 5. Scope limitations
 
