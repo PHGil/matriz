@@ -13,6 +13,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import pt.matriz.application.project.ProjectAccess;
 import pt.matriz.domain.shared.NotFoundException;
+import pt.matriz.domain.task.Progress;
 import pt.matriz.domain.task.Task;
 import pt.matriz.domain.task.TaskAssigneeRepository;
 import pt.matriz.domain.task.TaskChanges;
@@ -58,6 +59,11 @@ public class TaskService {
     public TaskDetails get(UUID projectId, UUID taskId, UUID userId) {
         access.requireMember(projectId, userId);
         return withAssignees(List.of(load(projectId, taskId))).get(0);
+    }
+
+    public Progress progress(UUID projectId, UUID userId) {
+        access.requireMember(projectId, userId);
+        return tasks.progress(projectId);
     }
 
     /** Members and the Manager can edit any field and change the status (FR-21, FR-23). Last write wins (EC-01). */

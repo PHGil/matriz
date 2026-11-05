@@ -29,6 +29,15 @@ export interface ProjectInput {
   description: string | null;
 }
 
+export interface ProjectProgress {
+  projectId: string;
+  total: number;
+  todo: number;
+  inProgress: number;
+  done: number;
+  percentDone: number | null;
+}
+
 export interface UserSummary {
   id: string;
   name: string;

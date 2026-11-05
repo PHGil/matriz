@@ -168,6 +168,39 @@ class TaskResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "bruno")
+    @OidcSecurity(claims = { @Claim(key = "sub", value = BRUNO), @Claim(key = "name", value = "Bruno Tarefas"),
+            @Claim(key = "email", value = "bruno.tasks@matriz.test") })
+    void progressReflectsStatusChanges() {
+        UUID projectId = project();
+        String progressUrl = "/api/v1/projects/" + projectId + "/progress";
+        given().when().get(progressUrl).then().statusCode(200)
+                .body("total", equalTo(0))
+                .body("percentDone", nullValue());
+
+        task(projectId, "Primeira");
+        task(projectId, "Segunda");
+        UUID done = task(projectId, "Terceira");
+        given().contentType(ContentType.JSON).body("{\"status\":\"DONE\"}")
+                .when().patch(tasksUrl(projectId) + "/" + done).then().statusCode(200);
+
+        given().when().get(progressUrl).then().statusCode(200)
+                .body("total", equalTo(3))
+                .body("todo", equalTo(2))
+                .body("inProgress", equalTo(0))
+                .body("done", equalTo(1))
+                .body("percentDone", equalTo(33));
+    }
+
+    @Test
+    @TestSecurity(user = "carla")
+    @OidcSecurity(claims = { @Claim(key = "sub", value = CARLA), @Claim(key = "name", value = "Carla Tarefas"),
+            @Claim(key = "email", value = "carla.tasks@matriz.test") })
+    void outsiderCannotSeeProgress() {
+        given().when().get("/api/v1/projects/" + project() + "/progress").then().statusCode(404);
+    }
+
+    @Test
     @TestSecurity(user = "carla")
     @OidcSecurity(claims = { @Claim(key = "sub", value = CARLA), @Claim(key = "name", value = "Carla Tarefas"),
             @Claim(key = "email", value = "carla.tasks@matriz.test") })

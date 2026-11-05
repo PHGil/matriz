@@ -7,6 +7,7 @@ import java.util.UUID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import pt.matriz.domain.task.Progress;
 import pt.matriz.domain.task.Task;
 import pt.matriz.domain.task.TaskPriority;
 import pt.matriz.domain.task.TaskRepository;
@@ -36,6 +37,20 @@ public class JpaTaskRepository implements TaskRepository {
                 .setParameter("status", status)
                 .setParameter("priority", priority)
                 .getResultStream().map(TaskEntity::toDomain).toList();
+    }
+
+    @Override
+    public Progress progress(UUID projectId) {
+        Object[] row = (Object[]) em.createNativeQuery("""
+                select count(*) filter (where status = 'TODO'),
+                       count(*) filter (where status = 'IN_PROGRESS'),
+                       count(*) filter (where status = 'DONE')
+                  from task where project_id = :projectId
+                """)
+                .setParameter("projectId", projectId)
+                .getSingleResult();
+        return new Progress(((Number) row[0]).longValue(), ((Number) row[1]).longValue(),
+                ((Number) row[2]).longValue());
     }
 
     @Override

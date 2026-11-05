@@ -19,9 +19,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import pt.matriz.application.project.MemberService;
 import pt.matriz.application.project.ProjectService;
+import pt.matriz.application.task.TaskService;
 import pt.matriz.domain.shared.ValidationException;
 import pt.matriz.infrastructure.api.ProjectDtos.MemberView;
 import pt.matriz.infrastructure.api.ProjectDtos.ProjectCreate;
+import pt.matriz.infrastructure.api.ProjectDtos.ProjectProgress;
 import pt.matriz.infrastructure.api.ProjectDtos.ProjectSummary;
 import pt.matriz.infrastructure.api.ProjectDtos.ProjectUpdate;
 import pt.matriz.infrastructure.api.ProjectDtos.ProjectView;
@@ -41,6 +43,9 @@ public class ProjectResource {
 
     @Inject
     MemberService members;
+
+    @Inject
+    TaskService tasks;
 
     @GET
     public List<ProjectSummary> list(@QueryParam("q") String q) {
@@ -73,6 +78,12 @@ public class ProjectResource {
     @Path("/{projectId}")
     public void delete(@PathParam("projectId") UUID projectId) {
         projects.delete(projectId, currentUser.id());
+    }
+
+    @GET
+    @Path("/{projectId}/progress")
+    public ProjectProgress progress(@PathParam("projectId") UUID projectId) {
+        return ProjectProgress.of(projectId, tasks.progress(projectId, currentUser.id()));
     }
 
     @GET

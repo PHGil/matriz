@@ -13,8 +13,9 @@ import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmProgressImports } from '@spartan-ng/helm/progress';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
-import { Project, ProjectInput } from '../core/models';
+import { Project, ProjectInput, ProjectProgress } from '../core/models';
 import { ProjectsService } from '../core/projects.service';
 import { errorMessage, fieldErrors, roleLabel } from '../core/ui-helpers';
 import { TaskBoard } from '../tasks/task-board';
@@ -33,6 +34,7 @@ import { ProjectForm } from './project-form';
     HlmBreadcrumbImports,
     HlmButtonImports,
     HlmCardImports,
+    HlmProgressImports,
     HlmSkeletonImports,
   ],
   providers: [
@@ -155,7 +157,42 @@ import { ProjectForm } from './project-form';
               <p hlmAlertDescription>{{ actionError() }}</p>
             </div>
           }
-          <app-task-board [projectId]="p.id" />
+          <section hlmCard [attr.aria-busy]="progress() === null">
+            <div hlmCardHeader>
+              <h2 hlmCardTitle>Progresso</h2>
+            </div>
+            <div hlmCardContent class="space-y-3">
+              @if (progress(); as pr) {
+                <dl class="grid grid-cols-3 gap-2 text-center">
+                  <div class="bg-muted/50 rounded-lg p-2">
+                    <dt class="text-muted-foreground text-xs">Por fazer</dt>
+                    <dd class="text-xl font-semibold tabular-nums">{{ pr.todo }}</dd>
+                  </div>
+                  <div class="bg-muted/50 rounded-lg p-2">
+                    <dt class="text-muted-foreground text-xs">Em curso</dt>
+                    <dd class="text-xl font-semibold tabular-nums">{{ pr.inProgress }}</dd>
+                  </div>
+                  <div class="bg-muted/50 rounded-lg p-2">
+                    <dt class="text-muted-foreground text-xs">Concluídas</dt>
+                    <dd class="text-xl font-semibold tabular-nums">{{ pr.done }}</dd>
+                  </div>
+                </dl>
+                @if (pr.percentDone === null) {
+                  <p class="text-muted-foreground text-sm">Sem tarefas</p>
+                } @else {
+                  <div class="space-y-1.5">
+                    <p class="text-muted-foreground text-sm">{{ pr.percentDone }}% concluído</p>
+                    <hlm-progress [value]="pr.percentDone" aria-label="Progresso do projeto">
+                      <hlm-progress-indicator />
+                    </hlm-progress>
+                  </div>
+                }
+              } @else {
+                <hlm-skeleton class="h-16 w-full" />
+              }
+            </div>
+          </section>
+          <app-task-board [projectId]="p.id" (changed)="loadProgress()" />
         </div>
       }
     }
@@ -177,8 +214,10 @@ export class ProjectDetail implements OnInit {
   protected readonly editFieldErrors = signal<Record<string, string>>({});
   protected readonly success = signal<string | null>(null);
   protected readonly isManager = computed(() => this.project()?.myRole === 'MANAGER');
+  protected readonly progress = signal<ProjectProgress | null>(null);
 
   ngOnInit(): void {
+    this.loadProgress();
     this.api.get(this.id()).subscribe({
       next: (p) => {
         this.project.set(p);
@@ -188,6 +227,14 @@ export class ProjectDetail implements OnInit {
         this.loadError.set(errorMessage(err));
         this.loading.set(false);
       },
+    });
+  }
+
+  /** Counts always cover all tasks of the project (US-07, US-09 AC2). */
+  protected loadProgress(): void {
+    this.api.progress(this.id()).subscribe({
+      next: (progress) => this.progress.set(progress),
+      error: () => this.progress.set(null),
     });
   }
 

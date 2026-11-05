@@ -2,7 +2,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { appSettings } from '../app-settings';
-import { Member, Project, ProjectInput, ProjectSummary, UserDirectoryEntry } from './models';
+import {
+  Member,
+  Project,
+  ProjectInput,
+  ProjectProgress,
+  ProjectSummary,
+  UserDirectoryEntry,
+} from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectsService {
@@ -28,6 +35,10 @@ export class ProjectsService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
+  progress(id: string): Observable<ProjectProgress> {
+    return this.http.get<ProjectProgress>(`${this.base}/${id}/progress`);
   }
 
   members(id: string): Observable<Member[]> {

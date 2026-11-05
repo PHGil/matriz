@@ -8,6 +8,7 @@ import pt.matriz.application.project.MemberService.MemberDetails;
 import pt.matriz.application.project.ProjectQueries;
 import pt.matriz.application.project.ProjectService.ProjectWithRole;
 import pt.matriz.domain.project.ProjectRole;
+import pt.matriz.domain.task.Progress;
 
 /** Request and response bodies of the projects API (openapi.yaml). */
 public final class ProjectDtos {
@@ -61,5 +62,13 @@ public final class ProjectDtos {
     }
 
     public record UserRef(UUID userId) {
+    }
+
+    public record ProjectProgress(UUID projectId, long total, long todo, long inProgress, long done,
+            Integer percentDone) {
+
+        static ProjectProgress of(UUID projectId, Progress p) {
+            return new ProjectProgress(projectId, p.total(), p.todo(), p.inProgress(), p.done(), p.percentDone());
+        }
     }
 }
