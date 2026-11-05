@@ -10,8 +10,8 @@
   "resetPasswordAllowed": false,
   "bruteForceProtected": false,
   "accessTokenLifespan": 300,
-  "ssoSessionIdleTimeout": 1800,
-  "ssoSessionMaxLifespan": 28800,
+  "ssoSessionIdleTimeout": 28800,
+  "ssoSessionMaxLifespan": 36000,
   "clients": [
     {
       "clientId": "matriz-frontend",

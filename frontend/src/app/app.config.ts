@@ -23,7 +23,7 @@ export const appConfig: ApplicationConfig = {
       config: { ...appSettings.keycloak },
       initOptions: { onLoad: 'login-required', pkceMethod: 'S256', checkLoginIframe: false },
       features: [
-        withAutoRefreshToken({ onInactivityTimeout: 'logout', sessionTimeout: 30 * 60 * 1000 }),
+        withAutoRefreshToken({ onInactivityTimeout: 'logout', sessionTimeout: 8 * 60 * 60 * 1000 }),
       ],
       providers: [AutoRefreshTokenService, UserActivityService],
     }),

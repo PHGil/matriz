@@ -90,7 +90,7 @@ npm start                     # http://localhost:4200 — /api is proxied to the
 
 1. Opening the app redirects to the Keycloak login page of realm `matriz` (OIDC Authorization Code + PKCE, client `matriz-frontend`).
 2. After login, the app sends the access token as `Authorization: Bearer <token>` only to `/api/v1`. The backend validates the JWT (issuer, signature, audience `matriz-backend`) and identifies the user by its `sub` claim.
-3. Access tokens last **5 minutes** and are refreshed automatically while the user is active; after **30 minutes** of inactivity (or 8 h in total) the Keycloak session ends.
+3. Access tokens last **5 minutes** and are refreshed automatically while the user is active; after **8 hours** of inactivity (or 10 h in total) the Keycloak session ends.
 4. **Sair** logs out of Keycloak and returns to the login page. If the API answers `401`, the app shows "A sua sessão expirou" with a button to log in again.
 5. Accounts are created, disabled and re-enabled in the Keycloak console. The backend mirrors users into `app_user` at startup and every 5 minutes; a disabled user cannot log in and loses API access when the current token expires (≤ 5 min).
 

@@ -11,7 +11,7 @@ info:
     access token with OIDC Authorization Code + PKCE (client `matriz-frontend`)
     and sends it as `Authorization: Bearer <token>`. Access tokens expire after
     5 minutes and are refreshed silently while the Keycloak session is valid
-    (idle 30 min, max 8 h). Logout ends the Keycloak session. Any request with a
+    (idle 8 h, max 10 h). Logout ends the Keycloak session. Any request with a
     missing, invalid or expired token gets `401`.
 
     **Authorisation.** Non-members of a project receive `404` for the project
