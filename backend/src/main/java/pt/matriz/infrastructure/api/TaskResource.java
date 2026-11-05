@@ -7,6 +7,7 @@ import java.util.UUID;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
@@ -62,5 +63,11 @@ public class TaskResource {
             TaskUpdate body) {
         TaskChanges changes = body == null ? null : body.toChanges();
         return TaskView.of(tasks.update(projectId, taskId, currentUser.id(), changes));
+    }
+
+    @DELETE
+    @Path("/{taskId}")
+    public void delete(@PathParam("projectId") UUID projectId, @PathParam("taskId") UUID taskId) {
+        tasks.delete(projectId, taskId, currentUser.id());
     }
 }

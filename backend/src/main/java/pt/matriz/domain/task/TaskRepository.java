@@ -15,6 +15,9 @@ public interface TaskRepository {
     /** Inserts or updates; returns the stored state (with timestamps). */
     Task save(Task task);
 
+    /** Deletes the task with its assignments and comments (BR-08). */
+    void delete(UUID id);
+
     /** Counts over all tasks of the project, regardless of any filter (US-09 AC2). */
     Progress progress(UUID projectId);
 }

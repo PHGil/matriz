@@ -28,4 +28,8 @@ export class TasksService {
   update(projectId: string, taskId: string, changes: TaskChanges): Observable<Task> {
     return this.http.patch<Task>(`${this.url(projectId)}/${taskId}`, changes);
   }
+
+  delete(projectId: string, taskId: string): Observable<void> {
+    return this.http.delete<void>(`${this.url(projectId)}/${taskId}`);
+  }
 }

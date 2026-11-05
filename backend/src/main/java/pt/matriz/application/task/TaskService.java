@@ -66,6 +66,13 @@ public class TaskService {
         return tasks.progress(projectId);
     }
 
+    /** Only the Manager can delete tasks (FR-25). */
+    @Transactional
+    public void delete(UUID projectId, UUID taskId, UUID userId) {
+        access.requireManager(projectId, userId);
+        tasks.delete(load(projectId, taskId).id());
+    }
+
     /** Members and the Manager can edit any field and change the status (FR-21, FR-23). Last write wins (EC-01). */
     @Transactional
     public TaskDetails update(UUID projectId, UUID taskId, UUID userId, TaskChanges changes) {

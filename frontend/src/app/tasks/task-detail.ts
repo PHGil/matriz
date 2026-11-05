@@ -1,8 +1,10 @@
 import { LowerCasePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCalendar, lucideCircleCheck, lucidePencil } from '@ng-icons/lucide';
+import { lucideCalendar, lucideCircleCheck, lucidePencil, lucideTrash2 } from '@ng-icons/lucide';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
@@ -33,6 +35,7 @@ import { TaskForm } from './task-form';
     NgIcon,
     TaskForm,
     HlmAlertImports,
+    HlmAlertDialogImports,
     HlmAvatarImports,
     HlmBadgeImports,
     HlmBreadcrumbImports,
@@ -40,7 +43,7 @@ import { TaskForm } from './task-form';
     HlmCardImports,
     HlmSkeletonImports,
   ],
-  providers: [provideIcons({ lucideCalendar, lucideCircleCheck, lucidePencil })],
+  providers: [provideIcons({ lucideCalendar, lucideCircleCheck, lucidePencil, lucideTrash2 })],
   template: `
     <nav hlmBreadcrumb class="mb-4">
       <ol hlmBreadcrumbList>
@@ -130,6 +133,28 @@ import { TaskForm } from './task-form';
                   <ng-icon name="lucidePencil" />
                   Editar
                 </button>
+                @if (isManager()) {
+                  <hlm-alert-dialog>
+                    <button type="button" hlmBtn variant="destructive" hlmAlertDialogTrigger [disabled]="busy()">
+                      <ng-icon name="lucideTrash2" />
+                      Eliminar
+                    </button>
+                    <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
+                      <hlm-alert-dialog-header>
+                        <h2 hlmAlertDialogTitle>Eliminar a tarefa "{{ t.title }}"?</h2>
+                        <p hlmAlertDialogDescription>
+                          Os responsáveis e comentários da tarefa também serão eliminados.
+                        </p>
+                      </hlm-alert-dialog-header>
+                      <hlm-alert-dialog-footer>
+                        <button hlmAlertDialogCancel>Cancelar</button>
+                        <button hlmAlertDialogAction variant="destructive" (click)="ctx.close(); remove()">
+                          Eliminar
+                        </button>
+                      </hlm-alert-dialog-footer>
+                    </hlm-alert-dialog-content>
+                  </hlm-alert-dialog>
+                }
               </div>
             </div>
             <div hlmCardContent class="space-y-4">
@@ -172,6 +197,7 @@ export class TaskDetail implements OnInit {
 
   private readonly projectsApi = inject(ProjectsService);
   private readonly api = inject(TasksService);
+  private readonly router = inject(Router);
 
   protected readonly statuses = statuses;
   protected readonly statusLabel = statusLabel;
@@ -190,6 +216,7 @@ export class TaskDetail implements OnInit {
   protected readonly actionError = signal<string | null>(null);
   protected readonly editFieldErrors = signal<Record<string, string>>({});
   protected readonly success = signal<string | null>(null);
+  protected readonly isManager = computed(() => this.project()?.myRole === 'MANAGER');
   protected readonly formValue = computed<TaskInput | null>(() => {
     const t = this.task();
     return t ? { title: t.title, description: t.description, priority: t.priority, dueDate: t.dueDate } : null;
@@ -225,6 +252,19 @@ export class TaskDetail implements OnInit {
 
   protected save(input: TaskInput): void {
     this.apply(input, 'Tarefa atualizada.', () => this.editing.set(false));
+  }
+
+  /** Only shown to the Manager; the API enforces it too (FR-25). */
+  protected remove(): void {
+    this.busy.set(true);
+    this.actionError.set(null);
+    this.api.delete(this.id(), this.taskId()).subscribe({
+      next: () => this.router.navigate(['/projetos', this.id()]),
+      error: (err) => {
+        this.busy.set(false);
+        this.actionError.set(errorMessage(err));
+      },
+    });
   }
 
   private apply(changes: TaskChanges, message: string, onSuccess?: () => void): void {

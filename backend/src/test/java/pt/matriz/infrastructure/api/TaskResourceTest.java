@@ -193,6 +193,34 @@ class TaskResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "ana")
+    @OidcSecurity(claims = { @Claim(key = "sub", value = ANA), @Claim(key = "name", value = "Ana Tarefas"),
+            @Claim(key = "email", value = "ana.tasks@matriz.test") })
+    void managerDeletesTaskAndCountsFollow() {
+        UUID projectId = project();
+        task(projectId, "Fica");
+        UUID taskId = task(projectId, "Sai");
+
+        given().when().delete(tasksUrl(projectId) + "/" + taskId).then().statusCode(204);
+
+        given().when().get(tasksUrl(projectId) + "/" + taskId).then().statusCode(404);
+        given().when().get("/api/v1/projects/" + projectId + "/progress").then().body("total", equalTo(1));
+        given().when().delete(tasksUrl(projectId) + "/" + taskId).then().statusCode(404);
+    }
+
+    @Test
+    @TestSecurity(user = "bruno")
+    @OidcSecurity(claims = { @Claim(key = "sub", value = BRUNO), @Claim(key = "name", value = "Bruno Tarefas"),
+            @Claim(key = "email", value = "bruno.tasks@matriz.test") })
+    void memberCannotDeleteTask() {
+        UUID projectId = project();
+        UUID taskId = task(projectId, "Protegida");
+
+        given().when().delete(tasksUrl(projectId) + "/" + taskId).then().statusCode(403);
+        given().when().get(tasksUrl(projectId) + "/" + taskId).then().statusCode(200);
+    }
+
+    @Test
     @TestSecurity(user = "carla")
     @OidcSecurity(claims = { @Claim(key = "sub", value = CARLA), @Claim(key = "name", value = "Carla Tarefas"),
             @Claim(key = "email", value = "carla.tasks@matriz.test") })

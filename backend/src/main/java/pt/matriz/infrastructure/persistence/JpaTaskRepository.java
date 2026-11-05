@@ -53,6 +53,12 @@ public class JpaTaskRepository implements TaskRepository {
                 ((Number) row[2]).longValue());
     }
 
+    /** Assignments and comments go with it through ON DELETE CASCADE (V1__schema.sql). */
+    @Override
+    public void delete(UUID id) {
+        em.createNativeQuery("delete from task where id = :id").setParameter("id", id).executeUpdate();
+    }
+
     @Override
     public Task save(Task task) {
         TaskEntity entity = em.find(TaskEntity.class, task.id());
