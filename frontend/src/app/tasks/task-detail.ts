@@ -121,12 +121,11 @@ import { TaskForm } from './task-form';
                 <select
                   id="task-status"
                   [class]="selectClass + ' w-40'"
-                  [value]="t.status"
                   [disabled]="busy()"
                   (change)="changeStatus($any($event.target).value)"
                 >
                   @for (s of statuses; track s) {
-                    <option [value]="s">{{ statusLabel[s] }}</option>
+                    <option [value]="s" [selected]="s === t.status">{{ statusLabel[s] }}</option>
                   }
                 </select>
                 <button type="button" hlmBtn variant="outline" (click)="startEdit()" [disabled]="busy()">
