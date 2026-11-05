@@ -30,7 +30,7 @@ jobs:
       - run: ./mvnw -B verify
 
   frontend:
-    name: Frontend (build + tests)
+    name: Frontend (format + build + tests)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -43,6 +43,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - run: npx prettier --check .
       - run: npx ng build
       - run: npx ng test --watch=false
 

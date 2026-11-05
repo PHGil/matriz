@@ -114,7 +114,7 @@ cd frontend && npm test -- --watch=false
 
 ### Continuous integration
 
-[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master` (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml).
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master` (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `prettier --check` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml). Format frontend code with `npx prettier --write .` (in `frontend/`) before committing.
 
 ### Reset local data
 
