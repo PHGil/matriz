@@ -151,6 +151,19 @@ class ProjectResourceTest {
     @TestSecurity(user = "ana")
     @OidcSecurity(claims = { @Claim(key = "sub", value = ANA), @Claim(key = "name", value = "Ana Teste"),
             @Claim(key = "email", value = "ana.projects@matriz.test") })
+    void patchWithOnlyNameKeepsDescription() {
+        UUID id = projects.create(UUID.fromString(ANA), "Com descricao", "Manter esta").project().id();
+
+        given().contentType(ContentType.JSON).body("{\"name\":\"Renomeado\"}")
+                .when().patch("/api/v1/projects/" + id).then().statusCode(200)
+                .body("name", equalTo("Renomeado"))
+                .body("description", equalTo("Manter esta"));
+    }
+
+    @Test
+    @TestSecurity(user = "ana")
+    @OidcSecurity(claims = { @Claim(key = "sub", value = ANA), @Claim(key = "name", value = "Ana Teste"),
+            @Claim(key = "email", value = "ana.projects@matriz.test") })
     void managerEditsSearchesAndManagesMembers() {
         UUID id = sharedProject("Intranet Nova");
 

@@ -18,8 +18,13 @@ public final class ProjectDtos {
     public record ProjectCreate(String name, String description) {
     }
 
-    /** Absent field = unchanged; {@code "description": null} clears it. */
-    public record ProjectUpdate(Optional<String> name, Optional<String> description) {
+    /**
+     * Absent field = unchanged ({@code null}); {@code "description": null} clears it ({@code Optional.empty()}).
+     * A class, not a record: Jackson would turn absent record components into {@code Optional.empty()}.
+     */
+    public static class ProjectUpdate {
+        public Optional<String> name;
+        public Optional<String> description;
     }
 
     public record StatusCounts(long todo, long inProgress, long done, long total) {

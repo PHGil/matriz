@@ -65,8 +65,8 @@ public class ProjectResource {
     @PATCH
     @Path("/{projectId}")
     public ProjectView update(@PathParam("projectId") UUID projectId, ProjectUpdate body) {
-        ProjectUpdate changes = body == null ? new ProjectUpdate(null, null) : body;
-        return ProjectView.of(projects.update(projectId, currentUser.id(), changes.name(), changes.description()));
+        ProjectUpdate changes = body == null ? new ProjectUpdate() : body;
+        return ProjectView.of(projects.update(projectId, currentUser.id(), changes.name, changes.description));
     }
 
     @DELETE
