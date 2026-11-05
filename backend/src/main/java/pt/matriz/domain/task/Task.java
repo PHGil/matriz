@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import pt.matriz.domain.shared.FieldValidator;
+import pt.matriz.domain.shared.ValidationException;
 
 /** A unit of work in a project (FR-20 – FR-26). Title 3–150 characters, description up to 2000. */
 public class Task {
@@ -47,6 +48,40 @@ public class Task {
         v.throwIfInvalid();
         return new Task(UUID.randomUUID(), projectId, validTitle, validDescription, TaskStatus.TODO,
                 priority == null ? TaskPriority.MEDIUM : priority, dueDate, null, null);
+    }
+
+    /** Applies a partial change; any status transition is allowed, including reopening (US-06 AC2). */
+    public void change(TaskChanges changes) {
+        if (changes == null || changes.isEmpty()) {
+            throw new ValidationException("title", "Indique pelo menos um campo a alterar.");
+        }
+        FieldValidator v = new FieldValidator();
+        String validTitle = changes.title() == null ? null
+                : v.requiredText("title", changes.title().orElse(null), TITLE_MIN, TITLE_MAX, "O título");
+        String validDescription = changes.description() == null ? null
+                : v.optionalText("description", changes.description().orElse(null), DESCRIPTION_MAX, "A descrição");
+        v.throwIfInvalid();
+        if (changes.status() != null && changes.status().isEmpty()) {
+            throw new ValidationException("status", "O estado é obrigatório.");
+        }
+        if (changes.priority() != null && changes.priority().isEmpty()) {
+            throw new ValidationException("priority", "A prioridade é obrigatória.");
+        }
+        if (changes.title() != null) {
+            title = validTitle;
+        }
+        if (changes.description() != null) {
+            description = validDescription;
+        }
+        if (changes.status() != null) {
+            status = changes.status().get();
+        }
+        if (changes.priority() != null) {
+            priority = changes.priority().get();
+        }
+        if (changes.dueDate() != null) {
+            dueDate = changes.dueDate().orElse(null);
+        }
     }
 
     public UUID id() {

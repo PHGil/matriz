@@ -70,6 +70,8 @@ export interface TaskInput {
   dueDate: string | null;
 }
 
+export type TaskChanges = Partial<TaskInput & { status: TaskStatus }>;
+
 export interface Problem {
   title: string;
   status: number;

@@ -15,6 +15,7 @@ import pt.matriz.application.project.ProjectAccess;
 import pt.matriz.domain.shared.NotFoundException;
 import pt.matriz.domain.task.Task;
 import pt.matriz.domain.task.TaskAssigneeRepository;
+import pt.matriz.domain.task.TaskChanges;
 import pt.matriz.domain.task.TaskPriority;
 import pt.matriz.domain.task.TaskRepository;
 import pt.matriz.domain.task.TaskStatus;
@@ -57,6 +58,15 @@ public class TaskService {
     public TaskDetails get(UUID projectId, UUID taskId, UUID userId) {
         access.requireMember(projectId, userId);
         return withAssignees(List.of(load(projectId, taskId))).get(0);
+    }
+
+    /** Members and the Manager can edit any field and change the status (FR-21, FR-23). Last write wins (EC-01). */
+    @Transactional
+    public TaskDetails update(UUID projectId, UUID taskId, UUID userId, TaskChanges changes) {
+        access.requireMember(projectId, userId);
+        Task task = load(projectId, taskId);
+        task.change(changes);
+        return withAssignees(List.of(tasks.save(task))).get(0);
     }
 
     /** The task must belong to the project in the URL, otherwise it is "not found" (EC-05). */

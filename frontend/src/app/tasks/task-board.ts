@@ -1,11 +1,13 @@
 import { Component, OnInit, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCalendar, lucideCircleCheck, lucidePlus } from '@ng-icons/lucide';
+import { lucideCalendar, lucideCircleCheck, lucideEllipsisVertical, lucidePlus } from '@ng-icons/lucide';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { Task, TaskInput, TaskStatus } from '../core/models';
 import { TasksService } from '../core/tasks.service';
@@ -26,15 +28,17 @@ import { TaskForm } from './task-form';
   selector: 'app-task-board',
   imports: [
     NgIcon,
+    RouterLink,
     TaskForm,
     HlmAlertImports,
     HlmAvatarImports,
     HlmBadgeImports,
     HlmButtonImports,
     HlmCardImports,
+    HlmDropdownMenuImports,
     HlmSkeletonImports,
   ],
-  providers: [provideIcons({ lucideCalendar, lucideCircleCheck, lucidePlus })],
+  providers: [provideIcons({ lucideCalendar, lucideCircleCheck, lucideEllipsisVertical, lucidePlus })],
   template: `
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <h2 class="text-xl font-semibold tracking-tight">Tarefas</h2>
@@ -75,6 +79,11 @@ import { TaskForm } from './task-form';
         <p hlmAlertDescription>{{ success() }}</p>
       </div>
     }
+    @if (actionError()) {
+      <div hlmAlert variant="destructive" class="mb-4">
+        <p hlmAlertDescription>{{ actionError() }}</p>
+      </div>
+    }
 
     @if (loading()) {
       <div class="grid gap-4 md:grid-cols-3" aria-busy="true">
@@ -100,9 +109,40 @@ import { TaskForm } from './task-form';
             </h3>
             <ul class="space-y-2">
               @for (t of columns()[status]; track t.id) {
-                <li hlmCard class="gap-2 py-3">
+                <li hlmCard class="gap-2 py-3" [attr.aria-busy]="movingId() === t.id">
                   <div hlmCardContent class="space-y-2 px-3">
-                    <p class="font-medium break-words">{{ t.title }}</p>
+                    <div class="flex items-start justify-between gap-2">
+                      <a
+                        class="font-medium break-words hover:underline"
+                        [routerLink]="['/projetos', projectId(), 'tarefas', t.id]"
+                        >{{ t.title }}</a
+                      >
+                      <button
+                        type="button"
+                        hlmBtn
+                        variant="ghost"
+                        size="icon-sm"
+                        class="-me-1 -mt-1 shrink-0"
+                        [attr.aria-label]="'Mover ' + t.title"
+                        [disabled]="movingId() !== null"
+                        [hlmDropdownMenuTrigger]="moveMenu"
+                        align="end"
+                      >
+                        <ng-icon name="lucideEllipsisVertical" />
+                      </button>
+                      <ng-template #moveMenu>
+                        <hlm-dropdown-menu class="w-44">
+                          <hlm-dropdown-menu-label>Mover para</hlm-dropdown-menu-label>
+                          @for (target of statuses; track target) {
+                            @if (target !== t.status) {
+                              <button type="button" hlmDropdownMenuItem (triggered)="move(t, target)">
+                                {{ statusLabel[target] }}
+                              </button>
+                            }
+                          }
+                        </hlm-dropdown-menu>
+                      </ng-template>
+                    </div>
                     <div class="flex flex-wrap items-center gap-2 text-xs">
                       <span hlmBadge [variant]="priorityBadge[t.priority]">{{ priorityLabel[t.priority] }}</span>
                       @if (t.dueDate) {
@@ -156,6 +196,8 @@ export class TaskBoard implements OnInit {
   protected readonly createError = signal<string | null>(null);
   protected readonly createFieldErrors = signal<Record<string, string>>({});
   protected readonly success = signal<string | null>(null);
+  protected readonly actionError = signal<string | null>(null);
+  protected readonly movingId = signal<string | null>(null);
 
   protected readonly columns = computed(() => {
     const byStatus: Record<TaskStatus, Task[]> = { TODO: [], IN_PROGRESS: [], DONE: [] };
@@ -187,6 +229,25 @@ export class TaskBoard implements OnInit {
   protected startCreate(): void {
     this.success.set(null);
     this.creating.set(true);
+  }
+
+  /** Status change from the board (US-06); the list is updated with the task returned by the API. */
+  protected move(task: Task, status: TaskStatus): void {
+    this.movingId.set(task.id);
+    this.actionError.set(null);
+    this.success.set(null);
+    this.api.update(this.projectId(), task.id, { status }).subscribe({
+      next: (updated) => {
+        this.tasks.update((list) => list.map((t) => (t.id === updated.id ? updated : t)));
+        this.movingId.set(null);
+        this.success.set(`"${updated.title}" movida para ${statusLabel[updated.status]}.`);
+        this.changed.emit();
+      },
+      error: (err) => {
+        this.movingId.set(null);
+        this.actionError.set(errorMessage(err));
+      },
+    });
   }
 
   protected create(input: TaskInput): void {

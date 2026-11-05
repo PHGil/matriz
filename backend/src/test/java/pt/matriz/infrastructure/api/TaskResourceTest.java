@@ -4,6 +4,8 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.UUID;
@@ -116,6 +118,64 @@ class TaskResourceTest {
                 .when().post(tasksUrl(projectId))
                 .then().statusCode(201)
                 .body("dueDate", equalTo("2020-01-01"));
+    }
+
+    @Test
+    @TestSecurity(user = "bruno")
+    @OidcSecurity(claims = { @Claim(key = "sub", value = BRUNO), @Claim(key = "name", value = "Bruno Tarefas"),
+            @Claim(key = "email", value = "bruno.tasks@matriz.test") })
+    void memberChangesStatusAndEditsTask() {
+        UUID projectId = project();
+        UUID taskId = task(projectId, "Maquetes");
+        String url = tasksUrl(projectId) + "/" + taskId;
+        String createdUpdatedAt = given().when().get(url).then().extract().path("updatedAt");
+
+        given().contentType(ContentType.JSON).body("{\"status\":\"IN_PROGRESS\"}")
+                .when().patch(url).then().statusCode(200)
+                .body("status", equalTo("IN_PROGRESS"))
+                .body("title", equalTo("Maquetes"))
+                .body("updatedAt", not(equalTo(createdUpdatedAt)));
+
+        given().contentType(ContentType.JSON).body("{\"status\":\"DONE\"}").when().patch(url).then().statusCode(200);
+        given().contentType(ContentType.JSON).body("{\"status\":\"TODO\"}")
+                .when().patch(url).then().statusCode(200).body("status", equalTo("TODO"));
+
+        given().contentType(ContentType.JSON)
+                .body("{\"title\":\"Maquetes v2\",\"priority\":\"HIGH\",\"dueDate\":\"2026-12-01\",\"description\":\"Rever\"}")
+                .when().patch(url).then().statusCode(200)
+                .body("title", equalTo("Maquetes v2"))
+                .body("priority", equalTo("HIGH"))
+                .body("dueDate", equalTo("2026-12-01"));
+        given().contentType(ContentType.JSON).body("{\"dueDate\":null,\"description\":null}")
+                .when().patch(url).then().statusCode(200)
+                .body("dueDate", nullValue())
+                .body("description", nullValue())
+                .body("title", equalTo("Maquetes v2"));
+    }
+
+    @Test
+    @TestSecurity(user = "bruno")
+    @OidcSecurity(claims = { @Claim(key = "sub", value = BRUNO), @Claim(key = "name", value = "Bruno Tarefas"),
+            @Claim(key = "email", value = "bruno.tasks@matriz.test") })
+    void invalidTaskChangesAreRejected() {
+        UUID projectId = project();
+        String url = tasksUrl(projectId) + "/" + task(projectId, "Tarefa");
+        for (String body : new String[] { "{}", "{\"status\":null}", "{\"status\":\"CLOSED\"}",
+                "{\"priority\":null}", "{\"title\":\"  \"}" }) {
+            given().contentType(ContentType.JSON).body(body)
+                    .when().patch(url).then().statusCode(400);
+        }
+    }
+
+    @Test
+    @TestSecurity(user = "carla")
+    @OidcSecurity(claims = { @Claim(key = "sub", value = CARLA), @Claim(key = "name", value = "Carla Tarefas"),
+            @Claim(key = "email", value = "carla.tasks@matriz.test") })
+    void outsiderCannotChangeTaskStatus() {
+        UUID projectId = project();
+        String url = tasksUrl(projectId) + "/" + task(projectId, "Tarefa");
+        given().contentType(ContentType.JSON).body("{\"status\":\"DONE\"}")
+                .when().patch(url).then().statusCode(404);
     }
 
     @Test

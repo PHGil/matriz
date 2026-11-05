@@ -8,6 +8,7 @@ import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -16,7 +17,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import pt.matriz.application.task.TaskService;
 import pt.matriz.domain.shared.ValidationException;
+import pt.matriz.domain.task.TaskChanges;
 import pt.matriz.infrastructure.api.TaskDtos.TaskCreate;
+import pt.matriz.infrastructure.api.TaskDtos.TaskUpdate;
 import pt.matriz.infrastructure.api.TaskDtos.TaskView;
 
 @Path("/projects/{projectId}/tasks")
@@ -51,5 +54,13 @@ public class TaskResource {
     @Path("/{taskId}")
     public TaskView get(@PathParam("projectId") UUID projectId, @PathParam("taskId") UUID taskId) {
         return TaskView.of(tasks.get(projectId, taskId, currentUser.id()));
+    }
+
+    @PATCH
+    @Path("/{taskId}")
+    public TaskView update(@PathParam("projectId") UUID projectId, @PathParam("taskId") UUID taskId,
+            TaskUpdate body) {
+        TaskChanges changes = body == null ? null : body.toChanges();
+        return TaskView.of(tasks.update(projectId, taskId, currentUser.id(), changes));
     }
 }

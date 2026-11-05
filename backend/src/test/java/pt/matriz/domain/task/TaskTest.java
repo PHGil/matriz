@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -36,5 +37,31 @@ class TaskTest {
         assertThrows(ValidationException.class, () -> Task.create(projectId, "ab", null, null, null));
         assertThrows(ValidationException.class, () -> Task.create(projectId, "x".repeat(151), null, null, null));
         assertThrows(ValidationException.class, () -> Task.create(projectId, "Válida", "d".repeat(2001), null, null));
+    }
+
+    @Test
+    void anyStatusTransitionIsAllowedIncludingReopening() {
+        Task task = Task.create(projectId, "Tarefa", null, null, null);
+        task.change(TaskChanges.status(TaskStatus.DONE));
+        assertEquals(TaskStatus.DONE, task.status());
+        task.change(TaskChanges.status(TaskStatus.TODO));
+        assertEquals(TaskStatus.TODO, task.status());
+    }
+
+    @Test
+    void changeAppliesOnlyGivenFieldsAndRejectsClearingRequiredOnes() {
+        Task task = Task.create(projectId, "Tarefa", "Desc", TaskPriority.HIGH, LocalDate.of(2026, 12, 1));
+        task.change(new TaskChanges(Optional.of("Novo título"), Optional.empty(), null, null, Optional.empty()));
+        assertEquals("Novo título", task.title());
+        assertNull(task.description());
+        assertNull(task.dueDate());
+        assertEquals(TaskPriority.HIGH, task.priority(), "absent fields stay unchanged");
+
+        assertThrows(ValidationException.class,
+                () -> task.change(new TaskChanges(null, null, Optional.empty(), null, null)));
+        assertThrows(ValidationException.class,
+                () -> task.change(new TaskChanges(null, null, null, Optional.empty(), null)));
+        assertThrows(ValidationException.class,
+                () -> task.change(new TaskChanges(null, null, null, null, null)));
     }
 }

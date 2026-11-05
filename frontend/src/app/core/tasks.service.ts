@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { appSettings } from '../app-settings';
-import { Task, TaskInput } from './models';
+import { Task, TaskChanges, TaskInput } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class TasksService {
@@ -22,5 +22,10 @@ export class TasksService {
 
   create(projectId: string, body: TaskInput): Observable<Task> {
     return this.http.post<Task>(this.url(projectId), body);
+  }
+
+  /** PATCH: only the fields present are changed; null clears description/dueDate. */
+  update(projectId: string, taskId: string, changes: TaskChanges): Observable<Task> {
+    return this.http.patch<Task>(`${this.url(projectId)}/${taskId}`, changes);
   }
 }

@@ -21,5 +21,10 @@ export const routes: Routes = [
     loadComponent: () => import('./projects/project-members').then((m) => m.ProjectMembers),
     title: 'Membros — Matriz',
   },
+  {
+    path: 'projetos/:id/tarefas/:taskId',
+    loadComponent: () => import('./tasks/task-detail').then((m) => m.TaskDetail),
+    title: 'Tarefa — Matriz',
+  },
   { path: '**', redirectTo: '' },
 ];
