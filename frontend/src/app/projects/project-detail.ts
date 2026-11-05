@@ -3,7 +3,6 @@ import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCircleCheck,
-  lucideFolderKanban,
   lucidePencil,
   lucideTrash2,
   lucideUsers,
@@ -14,11 +13,11 @@ import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
-import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { Project, ProjectInput } from '../core/models';
 import { ProjectsService } from '../core/projects.service';
 import { errorMessage, fieldErrors, roleLabel } from '../core/ui-helpers';
+import { TaskBoard } from '../tasks/task-board';
 import { ProjectForm } from './project-form';
 
 @Component({
@@ -26,6 +25,7 @@ import { ProjectForm } from './project-form';
   imports: [
     RouterLink,
     ProjectForm,
+    TaskBoard,
     NgIcon,
     HlmAlertImports,
     HlmAlertDialogImports,
@@ -33,13 +33,11 @@ import { ProjectForm } from './project-form';
     HlmBreadcrumbImports,
     HlmButtonImports,
     HlmCardImports,
-    HlmEmptyImports,
     HlmSkeletonImports,
   ],
   providers: [
     provideIcons({
       lucideCircleCheck,
-      lucideFolderKanban,
       lucidePencil,
       lucideTrash2,
       lucideUsers,
@@ -157,16 +155,7 @@ import { ProjectForm } from './project-form';
               <p hlmAlertDescription>{{ actionError() }}</p>
             </div>
           }
-          <hlm-empty class="border border-dashed">
-            <hlm-empty-header>
-              <hlm-empty-media variant="icon"
-                ><ng-icon name="lucideFolderKanban"
-              /></hlm-empty-media>
-              <p hlmEmptyDescription>
-                O quadro de tarefas será disponibilizado no próximo incremento.
-              </p>
-            </hlm-empty-header>
-          </hlm-empty>
+          <app-task-board [projectId]="p.id" />
         </div>
       }
     }

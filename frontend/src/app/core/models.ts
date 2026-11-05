@@ -47,6 +47,29 @@ export interface UserDirectoryEntry {
   email: string;
 }
 
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';
+export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface Task {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  dueDate: string | null;
+  assignees: UserSummary[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskInput {
+  title: string;
+  description: string | null;
+  priority: TaskPriority;
+  dueDate: string | null;
+}
+
 export interface Problem {
   title: string;
   status: number;

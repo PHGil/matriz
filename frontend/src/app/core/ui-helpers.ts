@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { Problem, ProjectRole } from './models';
+import { Problem, ProjectRole, TaskPriority, TaskStatus } from './models';
 
 /** User-facing message for a failed API call (pt-PT). */
 export function errorMessage(error: unknown): string {
@@ -53,6 +53,41 @@ export const roleLabel: Record<ProjectRole, string> = {
   MANAGER: 'Gestor',
   MEMBER: 'Membro',
 };
+
+/** UI labels for the API's technical values (NFR-05). */
+export const statusLabel: Record<TaskStatus, string> = {
+  TODO: 'Por fazer',
+  IN_PROGRESS: 'Em curso',
+  DONE: 'Concluído',
+};
+
+export const priorityLabel: Record<TaskPriority, string> = {
+  LOW: 'Baixa',
+  MEDIUM: 'Média',
+  HIGH: 'Alta',
+};
+
+export const statuses: TaskStatus[] = ['TODO', 'IN_PROGRESS', 'DONE'];
+export const priorities: TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
+
+export const priorityBadge: Record<TaskPriority, 'destructive' | 'secondary' | 'outline'> = {
+  HIGH: 'destructive',
+  MEDIUM: 'secondary',
+  LOW: 'outline',
+};
+
+/** Native <select> styled like hlmInput (spartan/ui has no select in this project). */
+export const selectClass =
+  'border-input dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 h-8 w-full min-w-0 rounded-lg border bg-transparent px-2 py-1 text-base outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm';
+
+/** "2026-11-15" -> "15/11/2026" (pt-PT). */
+export function formatDate(isoDate: string | null): string {
+  if (!isoDate) {
+    return '';
+  }
+  const [year, month, day] = isoDate.slice(0, 10).split('-');
+  return `${day}/${month}/${year}`;
+}
 
 /** Up to two initials for avatar fallbacks, e.g. "Ana Silva" -> "AS". */
 export function initials(name: string): string {
