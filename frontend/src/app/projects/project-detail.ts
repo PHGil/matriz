@@ -1,12 +1,7 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideCircleCheck,
-  lucidePencil,
-  lucideTrash2,
-  lucideUsers,
-} from '@ng-icons/lucide';
+import { lucideCircleCheck, lucidePencil, lucideTrash2, lucideUsers } from '@ng-icons/lucide';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';

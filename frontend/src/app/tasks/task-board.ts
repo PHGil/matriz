@@ -1,7 +1,21 @@
-import { Component, OnInit, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCalendar, lucideCircleCheck, lucideEllipsisVertical, lucidePlus } from '@ng-icons/lucide';
+import {
+  lucideCalendar,
+  lucideCircleCheck,
+  lucideEllipsisVertical,
+  lucidePlus,
+} from '@ng-icons/lucide';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
@@ -40,7 +54,9 @@ import { TaskForm } from './task-form';
     HlmDropdownMenuImports,
     HlmSkeletonImports,
   ],
-  providers: [provideIcons({ lucideCalendar, lucideCircleCheck, lucideEllipsisVertical, lucidePlus })],
+  providers: [
+    provideIcons({ lucideCalendar, lucideCircleCheck, lucideEllipsisVertical, lucidePlus }),
+  ],
   template: `
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <h2 class="text-xl font-semibold tracking-tight">Tarefas</h2>
@@ -103,7 +119,9 @@ import { TaskForm } from './task-form';
         </select>
       </div>
       @if (filtered()) {
-        <button type="button" hlmBtn variant="ghost" size="sm" (click)="clearFilters()">Limpar filtros</button>
+        <button type="button" hlmBtn variant="ghost" size="sm" (click)="clearFilters()">
+          Limpar filtros
+        </button>
         <p class="text-muted-foreground w-full text-xs">
           Filtros ativos: o progresso do projeto continua a contar todas as tarefas.
         </p>
@@ -133,13 +151,18 @@ import { TaskForm } from './task-form';
       <div hlmAlert variant="destructive">
         <p hlmAlertDescription>{{ error() }}</p>
         <div hlmAlertAction>
-          <button type="button" hlmBtn size="sm" variant="outline" (click)="reload()">Tentar novamente</button>
+          <button type="button" hlmBtn size="sm" variant="outline" (click)="reload()">
+            Tentar novamente
+          </button>
         </div>
       </div>
     } @else {
       <div class="grid items-start gap-4 md:grid-cols-3">
         @for (status of statuses; track status) {
-          <section class="bg-muted/40 rounded-xl border p-3" [attr.aria-label]="statusLabel[status]">
+          <section
+            class="bg-muted/40 rounded-xl border p-3"
+            [attr.aria-label]="statusLabel[status]"
+          >
             <h3 class="mb-3 flex items-center justify-between px-1 text-sm font-semibold">
               {{ statusLabel[status] }}
               <span hlmBadge variant="outline">{{ columns()[status].length }}</span>
@@ -172,7 +195,11 @@ import { TaskForm } from './task-form';
                           <hlm-dropdown-menu-label>Mover para</hlm-dropdown-menu-label>
                           @for (target of statuses; track target) {
                             @if (target !== t.status) {
-                              <button type="button" hlmDropdownMenuItem (triggered)="move(t, target)">
+                              <button
+                                type="button"
+                                hlmDropdownMenuItem
+                                (triggered)="move(t, target)"
+                              >
                                 {{ statusLabel[target] }}
                               </button>
                             }
@@ -181,7 +208,9 @@ import { TaskForm } from './task-form';
                       </ng-template>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 text-xs">
-                      <span hlmBadge [variant]="priorityBadge[t.priority]">{{ priorityLabel[t.priority] }}</span>
+                      <span hlmBadge [variant]="priorityBadge[t.priority]">{{
+                        priorityLabel[t.priority]
+                      }}</span>
                       @if (t.dueDate) {
                         <span class="text-muted-foreground flex items-center gap-1">
                           <ng-icon name="lucideCalendar" />
@@ -241,7 +270,9 @@ export class TaskBoard implements OnInit {
   protected readonly movingId = signal<string | null>(null);
   protected readonly statusFilter = signal<TaskStatus | ''>('');
   protected readonly priorityFilter = signal<TaskPriority | ''>('');
-  protected readonly filtered = computed(() => this.statusFilter() !== '' || this.priorityFilter() !== '');
+  protected readonly filtered = computed(
+    () => this.statusFilter() !== '' || this.priorityFilter() !== '',
+  );
 
   protected readonly columns = computed(() => {
     const byStatus: Record<TaskStatus, Task[]> = { TODO: [], IN_PROGRESS: [], DONE: [] };
@@ -258,16 +289,18 @@ export class TaskBoard implements OnInit {
   reload(): void {
     this.loading.set(this.tasks().length === 0);
     this.error.set(null);
-    this.api.list(this.projectId(), { status: this.statusFilter(), priority: this.priorityFilter() }).subscribe({
-      next: (tasks) => {
-        this.tasks.set(tasks);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(errorMessage(err));
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .list(this.projectId(), { status: this.statusFilter(), priority: this.priorityFilter() })
+      .subscribe({
+        next: (tasks) => {
+          this.tasks.set(tasks);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(errorMessage(err));
+          this.loading.set(false);
+        },
+      });
   }
 
   protected setStatusFilter(value: TaskStatus | ''): void {

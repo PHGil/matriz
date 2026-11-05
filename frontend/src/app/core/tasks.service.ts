@@ -13,7 +13,10 @@ export class TasksService {
   }
 
   /** Optional filters (FR-32); counts in the progress endpoint are never filtered. */
-  list(projectId: string, filters: { status?: TaskStatus | ''; priority?: TaskPriority | '' } = {}): Observable<Task[]> {
+  list(
+    projectId: string,
+    filters: { status?: TaskStatus | ''; priority?: TaskPriority | '' } = {},
+  ): Observable<Task[]> {
     let params = new HttpParams();
     if (filters.status) {
       params = params.set('status', filters.status);

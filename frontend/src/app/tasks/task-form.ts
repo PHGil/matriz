@@ -73,7 +73,13 @@ import { priorities, priorityLabel, selectClass, trimmedLength } from '../core/u
           }
           {{ saving() ? 'A guardar…' : submitLabel() }}
         </button>
-        <button type="button" hlmBtn variant="outline" (click)="cancelled.emit()" [disabled]="saving()">
+        <button
+          type="button"
+          hlmBtn
+          variant="outline"
+          (click)="cancelled.emit()"
+          [disabled]="saving()"
+        >
           Cancelar
         </button>
       </div>

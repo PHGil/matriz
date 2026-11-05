@@ -54,7 +54,9 @@ import { TaskForm } from './task-form';
         </li>
         @if (task(); as t) {
           <li hlmBreadcrumbSeparator></li>
-          <li hlmBreadcrumbItem><span hlmBreadcrumbPage>{{ t.title }}</span></li>
+          <li hlmBreadcrumbItem>
+            <span hlmBreadcrumbPage>{{ t.title }}</span>
+          </li>
         }
       </ol>
     </nav>
@@ -128,13 +130,25 @@ import { TaskForm } from './task-form';
                     <option [value]="s" [selected]="s === t.status">{{ statusLabel[s] }}</option>
                   }
                 </select>
-                <button type="button" hlmBtn variant="outline" (click)="startEdit()" [disabled]="busy()">
+                <button
+                  type="button"
+                  hlmBtn
+                  variant="outline"
+                  (click)="startEdit()"
+                  [disabled]="busy()"
+                >
                   <ng-icon name="lucidePencil" />
                   Editar
                 </button>
                 @if (isManager()) {
                   <hlm-alert-dialog>
-                    <button type="button" hlmBtn variant="destructive" hlmAlertDialogTrigger [disabled]="busy()">
+                    <button
+                      type="button"
+                      hlmBtn
+                      variant="destructive"
+                      hlmAlertDialogTrigger
+                      [disabled]="busy()"
+                    >
                       <ng-icon name="lucideTrash2" />
                       Eliminar
                     </button>
@@ -147,7 +161,11 @@ import { TaskForm } from './task-form';
                       </hlm-alert-dialog-header>
                       <hlm-alert-dialog-footer>
                         <button hlmAlertDialogCancel>Cancelar</button>
-                        <button hlmAlertDialogAction variant="destructive" (click)="ctx.close(); remove()">
+                        <button
+                          hlmAlertDialogAction
+                          variant="destructive"
+                          (click)="ctx.close(); remove()"
+                        >
                           Eliminar
                         </button>
                       </hlm-alert-dialog-footer>
@@ -170,7 +188,9 @@ import { TaskForm } from './task-form';
                   <ul class="flex flex-wrap gap-3">
                     @for (a of t.assignees; track a.id) {
                       <li class="flex items-center gap-2 text-sm">
-                        <hlm-avatar size="sm"><span hlmAvatarFallback>{{ initials(a.name) }}</span></hlm-avatar>
+                        <hlm-avatar size="sm"
+                          ><span hlmAvatarFallback>{{ initials(a.name) }}</span></hlm-avatar
+                        >
                         {{ a.name }}
                         @if (!a.active) {
                           <span hlmBadge variant="outline">desativado</span>
@@ -181,7 +201,8 @@ import { TaskForm } from './task-form';
                 }
               </div>
               <p class="text-muted-foreground text-xs">
-                Criada em {{ formatDate(t.createdAt) }} · Atualizada em {{ formatDate(t.updatedAt) }}
+                Criada em {{ formatDate(t.createdAt) }} · Atualizada em
+                {{ formatDate(t.updatedAt) }}
               </p>
             </div>
           </section>
@@ -218,7 +239,9 @@ export class TaskDetail implements OnInit {
   protected readonly isManager = computed(() => this.project()?.myRole === 'MANAGER');
   protected readonly formValue = computed<TaskInput | null>(() => {
     const t = this.task();
-    return t ? { title: t.title, description: t.description, priority: t.priority, dueDate: t.dueDate } : null;
+    return t
+      ? { title: t.title, description: t.description, priority: t.priority, dueDate: t.dueDate }
+      : null;
   });
 
   ngOnInit(): void {
