@@ -1,8 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { appSettings } from '../app-settings';
-import { Task, TaskChanges, TaskInput } from './models';
+import { Task, TaskChanges, TaskInput, TaskPriority, TaskStatus } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class TasksService {
@@ -12,8 +12,16 @@ export class TasksService {
     return `${appSettings.apiBaseUrl}/projects/${projectId}/tasks`;
   }
 
-  list(projectId: string): Observable<Task[]> {
-    return this.http.get<Task[]>(this.url(projectId));
+  /** Optional filters (FR-32); counts in the progress endpoint are never filtered. */
+  list(projectId: string, filters: { status?: TaskStatus | ''; priority?: TaskPriority | '' } = {}): Observable<Task[]> {
+    let params = new HttpParams();
+    if (filters.status) {
+      params = params.set('status', filters.status);
+    }
+    if (filters.priority) {
+      params = params.set('priority', filters.priority);
+    }
+    return this.http.get<Task[]>(this.url(projectId), { params });
   }
 
   get(projectId: string, taskId: string): Observable<Task> {

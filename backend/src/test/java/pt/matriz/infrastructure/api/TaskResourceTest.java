@@ -1,6 +1,7 @@
 package pt.matriz.infrastructure.api;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -25,6 +26,7 @@ import pt.matriz.application.project.MemberService;
 import pt.matriz.application.project.ProjectService;
 import pt.matriz.application.task.TaskService;
 import pt.matriz.application.user.UserService;
+import pt.matriz.domain.task.TaskPriority;
 
 @QuarkusTest
 class TaskResourceTest {
@@ -190,6 +192,33 @@ class TaskResourceTest {
                 .body("inProgress", equalTo(0))
                 .body("done", equalTo(1))
                 .body("percentDone", equalTo(33));
+    }
+
+    @Test
+    @TestSecurity(user = "bruno")
+    @OidcSecurity(claims = { @Claim(key = "sub", value = BRUNO), @Claim(key = "name", value = "Bruno Tarefas"),
+            @Claim(key = "email", value = "bruno.tasks@matriz.test") })
+    void filtersByStatusAndPriorityWithoutAffectingProgress() {
+        UUID projectId = project();
+        UUID high = tasks.create(projectId, UUID.fromString(ANA), "Alta", null,
+                TaskPriority.HIGH, null).task().id();
+        UUID low = tasks.create(projectId, UUID.fromString(ANA), "Baixa", null,
+                TaskPriority.LOW, null).task().id();
+        given().contentType(ContentType.JSON).body("{\"status\":\"DONE\"}")
+                .when().patch(tasksUrl(projectId) + "/" + low).then().statusCode(200);
+
+        given().queryParam("priority", "HIGH").when().get(tasksUrl(projectId)).then().statusCode(200)
+                .body("id", contains(high.toString()));
+        given().queryParam("status", "DONE").when().get(tasksUrl(projectId)).then().statusCode(200)
+                .body("id", contains(low.toString()));
+        given().queryParam("status", "DONE").queryParam("priority", "HIGH").when().get(tasksUrl(projectId))
+                .then().statusCode(200).body("id", empty());
+        given().queryParam("status", "CLOSED").when().get(tasksUrl(projectId)).then().statusCode(400)
+                .body("errors.field", hasItem("status"));
+
+        given().when().get("/api/v1/projects/" + projectId + "/progress").then()
+                .body("total", equalTo(2))
+                .body("done", equalTo(1));
     }
 
     @Test

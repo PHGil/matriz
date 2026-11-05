@@ -14,11 +14,14 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import pt.matriz.application.task.TaskService;
 import pt.matriz.domain.shared.ValidationException;
 import pt.matriz.domain.task.TaskChanges;
+import pt.matriz.domain.task.TaskPriority;
+import pt.matriz.domain.task.TaskStatus;
 import pt.matriz.infrastructure.api.TaskDtos.TaskCreate;
 import pt.matriz.infrastructure.api.TaskDtos.TaskUpdate;
 import pt.matriz.infrastructure.api.TaskDtos.TaskView;
@@ -36,8 +39,23 @@ public class TaskResource {
     TaskService tasks;
 
     @GET
-    public List<TaskView> list(@PathParam("projectId") UUID projectId) {
-        return tasks.list(projectId, currentUser.id(), null, null).stream().map(TaskView::of).toList();
+    public List<TaskView> list(@PathParam("projectId") UUID projectId, @QueryParam("status") String status,
+            @QueryParam("priority") String priority) {
+        return tasks.list(projectId, currentUser.id(),
+                parse(TaskStatus.class, "status", status), parse(TaskPriority.class, "priority", priority))
+                .stream().map(TaskView::of).toList();
+    }
+
+    /** Unknown filter values are a 400, not the 404 JAX-RS would give for a failed query param conversion. */
+    private static <E extends Enum<E>> E parse(Class<E> type, String field, String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Enum.valueOf(type, value.strip());
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException(field, "Valor de filtro inválido.");
+        }
     }
 
     @POST

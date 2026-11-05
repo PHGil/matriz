@@ -9,15 +9,17 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
-import { Task, TaskInput, TaskStatus } from '../core/models';
+import { Task, TaskInput, TaskPriority, TaskStatus } from '../core/models';
 import { TasksService } from '../core/tasks.service';
 import {
   errorMessage,
   fieldErrors,
   formatDate,
   initials,
+  priorities,
   priorityBadge,
   priorityLabel,
+  selectClass,
   statusLabel,
   statuses,
 } from '../core/ui-helpers';
@@ -72,6 +74,41 @@ import { TaskForm } from './task-form';
         </div>
       </section>
     }
+
+    <div class="mb-4 flex flex-wrap items-end gap-3" role="search" aria-label="Filtrar tarefas">
+      <div class="flex flex-col gap-1">
+        <label for="filter-status" class="text-sm font-medium">Estado</label>
+        <select
+          id="filter-status"
+          [class]="selectClass + ' w-40'"
+          (change)="setStatusFilter($any($event.target).value)"
+        >
+          <option value="" [selected]="statusFilter() === ''">Todos</option>
+          @for (s of statuses; track s) {
+            <option [value]="s" [selected]="statusFilter() === s">{{ statusLabel[s] }}</option>
+          }
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="filter-priority" class="text-sm font-medium">Prioridade</label>
+        <select
+          id="filter-priority"
+          [class]="selectClass + ' w-40'"
+          (change)="setPriorityFilter($any($event.target).value)"
+        >
+          <option value="" [selected]="priorityFilter() === ''">Todas</option>
+          @for (p of priorities; track p) {
+            <option [value]="p" [selected]="priorityFilter() === p">{{ priorityLabel[p] }}</option>
+          }
+        </select>
+      </div>
+      @if (filtered()) {
+        <button type="button" hlmBtn variant="ghost" size="sm" (click)="clearFilters()">Limpar filtros</button>
+        <p class="text-muted-foreground w-full text-xs">
+          Filtros ativos: o progresso do projeto continua a contar todas as tarefas.
+        </p>
+      }
+    </div>
 
     @if (success()) {
       <div hlmAlert role="status" class="mb-4">
@@ -164,7 +201,9 @@ import { TaskForm } from './task-form';
                   </div>
                 </li>
               } @empty {
-                <li class="text-muted-foreground px-1 py-4 text-center text-sm">Sem tarefas</li>
+                <li class="text-muted-foreground px-1 py-4 text-center text-sm">
+                  {{ filtered() ? 'Nenhuma tarefa corresponde aos filtros' : 'Sem tarefas' }}
+                </li>
               }
             </ul>
           </section>
@@ -182,6 +221,8 @@ export class TaskBoard implements OnInit {
   private readonly form = viewChild(TaskForm);
 
   protected readonly statuses = statuses;
+  protected readonly priorities = priorities;
+  protected readonly selectClass = selectClass;
   protected readonly statusLabel = statusLabel;
   protected readonly priorityLabel = priorityLabel;
   protected readonly priorityBadge = priorityBadge;
@@ -198,6 +239,9 @@ export class TaskBoard implements OnInit {
   protected readonly success = signal<string | null>(null);
   protected readonly actionError = signal<string | null>(null);
   protected readonly movingId = signal<string | null>(null);
+  protected readonly statusFilter = signal<TaskStatus | ''>('');
+  protected readonly priorityFilter = signal<TaskPriority | ''>('');
+  protected readonly filtered = computed(() => this.statusFilter() !== '' || this.priorityFilter() !== '');
 
   protected readonly columns = computed(() => {
     const byStatus: Record<TaskStatus, Task[]> = { TODO: [], IN_PROGRESS: [], DONE: [] };
@@ -214,7 +258,7 @@ export class TaskBoard implements OnInit {
   reload(): void {
     this.loading.set(this.tasks().length === 0);
     this.error.set(null);
-    this.api.list(this.projectId()).subscribe({
+    this.api.list(this.projectId(), { status: this.statusFilter(), priority: this.priorityFilter() }).subscribe({
       next: (tasks) => {
         this.tasks.set(tasks);
         this.loading.set(false);
@@ -224,6 +268,22 @@ export class TaskBoard implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  protected setStatusFilter(value: TaskStatus | ''): void {
+    this.statusFilter.set(value);
+    this.reload();
+  }
+
+  protected setPriorityFilter(value: TaskPriority | ''): void {
+    this.priorityFilter.set(value);
+    this.reload();
+  }
+
+  protected clearFilters(): void {
+    this.statusFilter.set('');
+    this.priorityFilter.set('');
+    this.reload();
   }
 
   protected startCreate(): void {
@@ -238,7 +298,11 @@ export class TaskBoard implements OnInit {
     this.success.set(null);
     this.api.update(this.projectId(), task.id, { status }).subscribe({
       next: (updated) => {
-        this.tasks.update((list) => list.map((t) => (t.id === updated.id ? updated : t)));
+        if (this.filtered()) {
+          this.reload();
+        } else {
+          this.tasks.update((list) => list.map((t) => (t.id === updated.id ? updated : t)));
+        }
         this.movingId.set(null);
         this.success.set(`"${updated.title}" movida para ${statusLabel[updated.status]}.`);
         this.changed.emit();
