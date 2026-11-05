@@ -54,5 +54,5 @@ Every commit message must start with exactly one of these three prefixes:
 * **No Ending Punctuation:** Do not end the subject line with a period.
 * **Imperative Mood:** Use the imperative, present-tense mood in the description (e.g., "add feature" instead of "added feature" or "adds feature").
 * **Spacing:** Separate the subject line from the body with **exactly one blank line** (if a body is provided).
-* **User Story Tracking:** You must append the User Story identification enclosed in parentheses at the very end of the commit message (e.g., `(US-1)`).
+* **User Story Tracking:** You must append the User Story identification enclosed in parentheses at the very end of the commit message (e.g., `feat: this is a commit message (US-1)`).
 
