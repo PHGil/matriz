@@ -1,23 +1,74 @@
-<header class="topbar">
-  <a class="brand" routerLink="/">{{ title }}</a>
-  <nav>
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-      >Início</a
-    >
-    <a routerLink="/projetos" routerLinkActive="active">Projetos</a>
-  </nav>
-  <span class="spacer"></span>
-  @if (auth.user(); as user) {
-    <span class="user">{{ user.name }}</span>
-  }
-  <button type="button" (click)="auth.logout()">Sair</button>
+<header class="bg-background/80 sticky top-0 z-40 border-b backdrop-blur">
+  <div class="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
+    <a class="brand flex items-center gap-2 text-lg font-semibold tracking-tight" routerLink="/">
+      <span
+        class="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md"
+        aria-hidden="true"
+      >
+        <ng-icon name="lucideLayoutGrid" />
+      </span>
+      {{ title }}
+    </a>
+    <nav class="flex items-center gap-1 text-sm">
+      @for (link of navLinks; track link.path) {
+        <a
+          [routerLink]="link.path"
+          routerLinkActive="bg-muted !text-foreground"
+          [routerLinkActiveOptions]="{ exact: link.exact }"
+          class="text-muted-foreground hover:text-foreground rounded-md px-3 py-1.5 font-medium transition-colors"
+          >{{ link.label }}</a
+        >
+      }
+    </nav>
+    <span class="flex-1"></span>
+    @if (auth.user(); as user) {
+      <button
+        type="button"
+        hlmBtn
+        variant="ghost"
+        class="h-9 gap-2 px-1.5"
+        [hlmDropdownMenuTrigger]="userMenu"
+        align="end"
+      >
+        <hlm-avatar size="sm">
+          <span hlmAvatarFallback>{{ initials(user.name) }}</span>
+        </hlm-avatar>
+        <span class="user hidden sm:inline">{{ user.name }}</span>
+        <ng-icon name="lucideChevronDown" class="text-muted-foreground" />
+      </button>
+      <ng-template #userMenu>
+        <hlm-dropdown-menu class="w-56">
+          <hlm-dropdown-menu-label>
+            <div class="font-medium">{{ user.name }}</div>
+            <div class="text-muted-foreground truncate text-xs font-normal">{{ user.email }}</div>
+          </hlm-dropdown-menu-label>
+          <hlm-dropdown-menu-separator />
+          <button type="button" hlmDropdownMenuItem (triggered)="auth.logout()">
+            <ng-icon name="lucideLogOut" />
+            Sair
+          </button>
+        </hlm-dropdown-menu>
+      </ng-template>
+    } @else {
+      <button type="button" hlmBtn variant="ghost" (click)="auth.logout()">
+        <ng-icon name="lucideLogOut" />
+        Sair
+      </button>
+    }
+  </div>
 </header>
 @if (auth.sessionExpired()) {
-  <div class="banner" role="alert">
-    A sua sessão expirou. Inicie sessão novamente para continuar.
-    <button type="button" (click)="auth.login()">Iniciar sessão</button>
+  <div class="mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6">
+    <div hlmAlert variant="destructive">
+      <ng-icon name="lucideCircleAlert" />
+      <h2 hlmAlertTitle>Sessão expirada</h2>
+      <p hlmAlertDescription>A sua sessão expirou. Inicie sessão novamente para continuar.</p>
+      <div hlmAlertAction>
+        <button type="button" hlmBtn size="sm" (click)="auth.login()">Iniciar sessão</button>
+      </div>
+    </div>
   </div>
 }
-<main>
+<main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
   <router-outlet />
 </main>

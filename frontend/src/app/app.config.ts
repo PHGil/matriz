@@ -1,6 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideSpartanHlm } from '@spartan-ng/helm/utils';
 import {
   AutoRefreshTokenService,
   INCLUDE_BEARER_TOKEN_INTERCEPTOR_CONFIG,
@@ -33,5 +34,6 @@ export const appConfig: ApplicationConfig = {
     },
     provideHttpClient(withInterceptors([includeBearerTokenInterceptor, sessionExpiredInterceptor])),
     provideRouter(routes, withComponentInputBinding()),
+    provideSpartanHlm(),
   ],
 };

@@ -1,5 +1,21 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideCircleCheck,
+  lucideFolderKanban,
+  lucidePencil,
+  lucideTrash2,
+  lucideUsers,
+} from '@ng-icons/lucide';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { Project, ProjectInput } from '../core/models';
 import { ProjectsService } from '../core/projects.service';
 import { errorMessage, fieldErrors, roleLabel } from '../core/ui-helpers';
@@ -7,55 +23,151 @@ import { ProjectForm } from './project-form';
 
 @Component({
   selector: 'app-project-detail',
-  imports: [RouterLink, ProjectForm],
+  imports: [
+    RouterLink,
+    ProjectForm,
+    NgIcon,
+    HlmAlertImports,
+    HlmAlertDialogImports,
+    HlmBadgeImports,
+    HlmBreadcrumbImports,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmEmptyImports,
+    HlmSkeletonImports,
+  ],
+  providers: [
+    provideIcons({
+      lucideCircleCheck,
+      lucideFolderKanban,
+      lucidePencil,
+      lucideTrash2,
+      lucideUsers,
+    }),
+  ],
   template: `
-    <p class="muted"><a routerLink="/projetos">Projetos</a> › {{ project()?.name }}</p>
+    <nav hlmBreadcrumb class="mb-4">
+      <ol hlmBreadcrumbList>
+        <li hlmBreadcrumbItem><a hlmBreadcrumbLink link="/projetos">Projetos</a></li>
+        @if (project(); as p) {
+          <li hlmBreadcrumbSeparator></li>
+          <li hlmBreadcrumbItem>
+            <span hlmBreadcrumbPage>{{ p.name }}</span>
+          </li>
+        }
+      </ol>
+    </nav>
 
     @if (loading()) {
-      <p class="muted">A carregar…</p>
+      <div class="space-y-3" aria-busy="true">
+        <span class="sr-only">A carregar…</span>
+        <hlm-skeleton class="h-9 w-64" />
+        <hlm-skeleton class="h-5 w-96 max-w-full" />
+      </div>
     } @else if (loadError()) {
-      <p class="notice error" role="alert">{{ loadError() }}</p>
+      <div hlmAlert variant="destructive">
+        <p hlmAlertDescription>{{ loadError() }}</p>
+      </div>
     } @else if (project(); as p) {
       @if (editing()) {
-        <section class="panel">
-          <h2>Editar projeto</h2>
-          @if (actionError()) {
-            <p class="notice error" role="alert">{{ actionError() }}</p>
-          }
-          <app-project-form
-            [initial]="{ name: p.name, description: p.description }"
-            [saving]="busy()"
-            [serverErrors]="editFieldErrors()"
-            (submitted)="save($event)"
-            (cancelled)="editing.set(false)"
-          />
+        <section hlmCard>
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>Editar projeto</h2>
+          </div>
+          <div hlmCardContent class="space-y-4">
+            @if (actionError()) {
+              <div hlmAlert variant="destructive">
+                <p hlmAlertDescription>{{ actionError() }}</p>
+              </div>
+            }
+            <app-project-form
+              [initial]="{ name: p.name, description: p.description }"
+              [saving]="busy()"
+              [serverErrors]="editFieldErrors()"
+              (submitted)="save($event)"
+              (cancelled)="editing.set(false)"
+            />
+          </div>
         </section>
       } @else {
-        <div class="toolbar">
-          <div>
-            <h1>{{ p.name }}</h1>
+        <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div class="min-w-0 space-y-2">
+            <div class="flex flex-wrap items-center gap-3">
+              <h1 class="text-3xl font-semibold tracking-tight break-words">{{ p.name }}</h1>
+              <span hlmBadge [variant]="p.myRole === 'MANAGER' ? 'default' : 'secondary'">
+                {{ roleLabel[p.myRole] }}
+              </span>
+            </div>
             @if (p.description) {
-              <p>{{ p.description }}</p>
+              <p class="text-muted-foreground max-w-prose">{{ p.description }}</p>
             }
-            <span class="badge">{{ roleLabel[p.myRole] }}</span>
           </div>
-          <div class="actions">
-            <a [routerLink]="['/projetos', p.id, 'membros']" class="button">Membros</a>
+          <div class="flex flex-wrap gap-2">
+            <a hlmBtn variant="outline" [routerLink]="['/projetos', p.id, 'membros']">
+              <ng-icon name="lucideUsers" />
+              Membros
+            </a>
             @if (isManager()) {
-              <button type="button" (click)="startEdit()">Editar</button>
-              <button type="button" class="danger" (click)="remove(p)" [disabled]="busy()">
-                Eliminar
+              <button type="button" hlmBtn variant="outline" (click)="startEdit()">
+                <ng-icon name="lucidePencil" />
+                Editar
               </button>
+              <hlm-alert-dialog>
+                <button
+                  type="button"
+                  hlmBtn
+                  variant="destructive"
+                  hlmAlertDialogTrigger
+                  [disabled]="busy()"
+                >
+                  <ng-icon name="lucideTrash2" />
+                  Eliminar
+                </button>
+                <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
+                  <hlm-alert-dialog-header>
+                    <h2 hlmAlertDialogTitle>Eliminar o projeto "{{ p.name }}"?</h2>
+                    <p hlmAlertDialogDescription>
+                      Todas as tarefas, responsáveis e comentários serão eliminados.
+                    </p>
+                  </hlm-alert-dialog-header>
+                  <hlm-alert-dialog-footer>
+                    <button hlmAlertDialogCancel>Cancelar</button>
+                    <button
+                      hlmAlertDialogAction
+                      variant="destructive"
+                      (click)="ctx.close(); remove(p)"
+                    >
+                      Eliminar
+                    </button>
+                  </hlm-alert-dialog-footer>
+                </hlm-alert-dialog-content>
+              </hlm-alert-dialog>
             }
           </div>
         </div>
-        @if (success()) {
-          <p class="notice success" role="status">{{ success() }}</p>
-        }
-        @if (actionError()) {
-          <p class="notice error" role="alert">{{ actionError() }}</p>
-        }
-        <p class="muted">O quadro de tarefas será disponibilizado no próximo incremento.</p>
+        <div class="space-y-4">
+          @if (success()) {
+            <div hlmAlert role="status">
+              <ng-icon name="lucideCircleCheck" />
+              <p hlmAlertDescription>{{ success() }}</p>
+            </div>
+          }
+          @if (actionError()) {
+            <div hlmAlert variant="destructive">
+              <p hlmAlertDescription>{{ actionError() }}</p>
+            </div>
+          }
+          <hlm-empty class="border border-dashed">
+            <hlm-empty-header>
+              <hlm-empty-media variant="icon"
+                ><ng-icon name="lucideFolderKanban"
+              /></hlm-empty-media>
+              <p hlmEmptyDescription>
+                O quadro de tarefas será disponibilizado no próximo incremento.
+              </p>
+            </hlm-empty-header>
+          </hlm-empty>
+        </div>
       }
     }
   `,
@@ -117,12 +229,6 @@ export class ProjectDetail implements OnInit {
   }
 
   protected remove(p: Project): void {
-    const confirmed = window.confirm(
-      `Eliminar o projeto "${p.name}"? Todas as tarefas, responsáveis e comentários serão eliminados.`,
-    );
-    if (!confirmed) {
-      return;
-    }
     this.busy.set(true);
     this.actionError.set(null);
     this.api.delete(p.id).subscribe({
