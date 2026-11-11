@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.matriz.domain.exception.ValidationException;
 
@@ -37,6 +39,24 @@ class TaskTest {
         assertThrows(ValidationException.class, () -> Task.create(projectId, "ab", null, null, null));
         assertThrows(ValidationException.class, () -> Task.create(projectId, "x".repeat(151), null, null, null));
         assertThrows(ValidationException.class, () -> Task.create(projectId, "Válida", "d".repeat(2001), null, null));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = { 3, 150 })
+    void titleOnTheLengthLimitsIsAccepted(int length) {
+        assertEquals(length, Task.create(projectId, "t".repeat(length), null, null, null).getTitle().length());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = { 0, 2, 151 })
+    void titleJustOutsideTheLengthLimitsIsRejected(int length) {
+        assertThrows(ValidationException.class, () -> Task.create(projectId, "t".repeat(length), null, null, null));
+    }
+
+    @Test
+    void titleLengthIsMeasuredAfterTrimming() {
+        assertEquals("abc", Task.create(projectId, "   abc   ", null, null, null).getTitle());
+        assertThrows(ValidationException.class, () -> Task.create(projectId, "   ab   ", null, null, null));
     }
 
     @Test
