@@ -81,6 +81,14 @@ export interface TaskInput {
 
 export type TaskChanges = Partial<TaskInput & { status: TaskStatus }>;
 
+export interface Comment {
+  id: string;
+  taskId: string;
+  author: UserSummary;
+  content: string;
+  createdAt: string;
+}
+
 export interface Problem {
   title: string;
   status: number;

@@ -38,6 +38,30 @@ public class TaskAssigneeRepository implements DomainTaskAssigneeRepository {
     }
 
     @Override
+    public boolean exists(UUID taskId, UUID userId) {
+        return !em.createNativeQuery("select 1 from task_assignee where task_id = :taskId and user_id = :userId")
+                .setParameter("taskId", taskId)
+                .setParameter("userId", userId)
+                .getResultList().isEmpty();
+    }
+
+    @Override
+    public void add(UUID taskId, UUID userId) {
+        em.createNativeQuery("insert into task_assignee (task_id, user_id) values (:taskId, :userId)")
+                .setParameter("taskId", taskId)
+                .setParameter("userId", userId)
+                .executeUpdate();
+    }
+
+    @Override
+    public boolean remove(UUID taskId, UUID userId) {
+        return em.createNativeQuery("delete from task_assignee where task_id = :taskId and user_id = :userId")
+                .setParameter("taskId", taskId)
+                .setParameter("userId", userId)
+                .executeUpdate() > 0;
+    }
+
+    @Override
     public void removeUserFromProjectTasks(UUID projectId, UUID userId) {
         em.createNativeQuery("""
                 delete from task_assignee a

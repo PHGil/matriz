@@ -3,6 +3,7 @@ package com.matriz.adapter.rest.resource;
 import java.util.List;
 import java.util.UUID;
 
+import com.matriz.adapter.rest.to.task.AssigneeCreateTO;
 import com.matriz.adapter.rest.to.task.TaskCreateTO;
 import com.matriz.adapter.rest.to.task.TaskTO;
 import com.matriz.adapter.rest.to.task.TaskUpdateTO;
@@ -43,4 +44,14 @@ public interface TaskRouter {
     @DELETE
     @Path("/{taskId}")
     void delete(@PathParam("projectId") UUID projectId, @PathParam("taskId") UUID taskId);
+
+    @POST
+    @Path("/{taskId}/assignees")
+    Response addAssignee(@PathParam("projectId") UUID projectId, @PathParam("taskId") UUID taskId,
+            AssigneeCreateTO body);
+
+    @DELETE
+    @Path("/{taskId}/assignees/{userId}")
+    void removeAssignee(@PathParam("projectId") UUID projectId, @PathParam("taskId") UUID taskId,
+            @PathParam("userId") UUID userId);
 }

@@ -5,27 +5,27 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCalendar, lucideCircleCheck, lucidePencil, lucideTrash2 } from '@ng-icons/lucide';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
-import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { forkJoin } from 'rxjs';
-import { Project, Task, TaskChanges, TaskInput, TaskStatus } from '../core/models';
+import { Project, Task, TaskChanges, TaskInput, TaskStatus, UserSummary } from '../core/models';
 import { ProjectsService } from '../core/projects.service';
 import { TasksService } from '../core/tasks.service';
 import {
   errorMessage,
   fieldErrors,
   formatDate,
-  initials,
   priorityBadge,
   priorityLabel,
   selectClass,
   statusLabel,
   statuses,
 } from '../core/ui-helpers';
+import { TaskAssignees } from './task-assignees';
+import { TaskComments } from './task-comments';
 import { TaskForm } from './task-form';
 
 @Component({
@@ -33,10 +33,11 @@ import { TaskForm } from './task-form';
   imports: [
     LowerCasePipe,
     NgIcon,
+    TaskAssignees,
+    TaskComments,
     TaskForm,
     HlmAlertImports,
     HlmAlertDialogImports,
-    HlmAvatarImports,
     HlmBadgeImports,
     HlmBreadcrumbImports,
     HlmButtonImports,
@@ -180,26 +181,12 @@ import { TaskForm } from './task-form';
               } @else {
                 <p class="text-muted-foreground">Sem descrição.</p>
               }
-              <div>
-                <h2 class="mb-2 text-sm font-semibold">Responsáveis</h2>
-                @if (t.assignees.length === 0) {
-                  <p class="text-muted-foreground text-sm">Sem responsáveis.</p>
-                } @else {
-                  <ul class="flex flex-wrap gap-3">
-                    @for (a of t.assignees; track a.id) {
-                      <li class="flex items-center gap-2 text-sm">
-                        <hlm-avatar size="sm"
-                          ><span hlmAvatarFallback>{{ initials(a.name) }}</span></hlm-avatar
-                        >
-                        {{ a.name }}
-                        @if (!a.active) {
-                          <span hlmBadge variant="outline">desativado</span>
-                        }
-                      </li>
-                    }
-                  </ul>
-                }
-              </div>
+              <app-task-assignees
+                [projectId]="id()"
+                [taskId]="taskId()"
+                [assignees]="t.assignees"
+                (assigneesChange)="setAssignees($event)"
+              />
               <p class="text-muted-foreground text-xs">
                 Criada em {{ formatDate(t.createdAt) }} · Atualizada em
                 {{ formatDate(t.updatedAt) }}
@@ -207,6 +194,12 @@ import { TaskForm } from './task-form';
             </div>
           </section>
         }
+
+        <section hlmCard>
+          <div hlmCardContent>
+            <app-task-comments [projectId]="id()" [taskId]="taskId()" />
+          </div>
+        </section>
       </div>
     }
   `,
@@ -225,7 +218,6 @@ export class TaskDetail implements OnInit {
   protected readonly priorityBadge = priorityBadge;
   protected readonly selectClass = selectClass;
   protected readonly formatDate = formatDate;
-  protected readonly initials = initials;
 
   protected readonly project = signal<Project | null>(null);
   protected readonly task = signal<Task | null>(null);
@@ -274,6 +266,10 @@ export class TaskDetail implements OnInit {
 
   protected save(input: TaskInput): void {
     this.apply(input, 'Tarefa atualizada.', () => this.editing.set(false));
+  }
+
+  protected setAssignees(assignees: UserSummary[]): void {
+    this.task.update((t) => (t ? { ...t, assignees } : t));
   }
 
   /** Only shown to the Manager; the API enforces it too (FR-25). */

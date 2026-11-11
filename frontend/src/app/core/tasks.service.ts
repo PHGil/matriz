@@ -2,7 +2,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { appSettings } from '../app-settings';
-import { Task, TaskChanges, TaskInput, TaskPriority, TaskStatus } from './models';
+import {
+  Comment,
+  Task,
+  TaskChanges,
+  TaskInput,
+  TaskPriority,
+  TaskStatus,
+  UserSummary,
+} from './models';
 
 @Injectable({ providedIn: 'root' })
 export class TasksService {
@@ -42,5 +50,21 @@ export class TasksService {
 
   delete(projectId: string, taskId: string): Observable<void> {
     return this.http.delete<void>(`${this.url(projectId)}/${taskId}`);
+  }
+
+  addAssignee(projectId: string, taskId: string, userId: string): Observable<UserSummary> {
+    return this.http.post<UserSummary>(`${this.url(projectId)}/${taskId}/assignees`, { userId });
+  }
+
+  removeAssignee(projectId: string, taskId: string, userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.url(projectId)}/${taskId}/assignees/${userId}`);
+  }
+
+  comments(projectId: string, taskId: string): Observable<Comment[]> {
+    return this.http.get<Comment[]>(`${this.url(projectId)}/${taskId}/comments`);
+  }
+
+  addComment(projectId: string, taskId: string, content: string): Observable<Comment> {
+    return this.http.post<Comment>(`${this.url(projectId)}/${taskId}/comments`, { content });
   }
 }

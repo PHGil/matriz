@@ -89,6 +89,11 @@ export function formatDate(isoDate: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
+/** ISO date-time -> "15/11/2026, 14:30" in the browser's time zone (pt-PT). */
+export function formatDateTime(isoDateTime: string): string {
+  return new Date(isoDateTime).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' });
+}
+
 /** Up to two initials for avatar fallbacks, e.g. "Ana Silva" -> "AS". */
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);

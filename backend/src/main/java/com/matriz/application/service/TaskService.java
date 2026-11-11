@@ -9,10 +9,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.matriz.application.port.in.TaskUseCases;
+import com.matriz.application.port.out.persistence.DomainMemberRepository;
 import com.matriz.application.port.out.persistence.DomainTaskAssigneeRepository;
 import com.matriz.application.port.out.persistence.DomainTaskRepository;
 import com.matriz.application.port.out.persistence.DomainUserRepository;
+import com.matriz.domain.exception.ConflictException;
 import com.matriz.domain.exception.NotFoundException;
+import com.matriz.domain.exception.ValidationException;
 import com.matriz.domain.task.Progress;
 import com.matriz.domain.task.Task;
 import com.matriz.domain.task.TaskChanges;
@@ -33,6 +36,7 @@ public class TaskService implements TaskUseCases {
     private final DomainTaskRepository taskRepository;
     private final DomainTaskAssigneeRepository assigneeRepository;
     private final DomainUserRepository userRepository;
+    private final DomainMemberRepository memberRepository;
     private final ProjectAccess access;
 
     @Override
@@ -76,6 +80,35 @@ public class TaskService implements TaskUseCases {
         Task task = load(projectId, taskId);
         task.change(changes);
         return withAssignees(List.of(taskRepository.save(task))).get(0);
+    }
+
+    @Override
+    @Transactional
+    public User assign(UUID projectId, UUID taskId, UUID userId, UUID assigneeId) {
+        access.requireMember(projectId, userId);
+        Task task = load(projectId, taskId);
+        if (assigneeId == null) {
+            throw new ValidationException("userId", "Indique o utilizador.");
+        }
+        User assignee = userRepository.findById(assigneeId)
+                .filter(User::isActive)
+                .filter(u -> memberRepository.find(projectId, u.getId()).isPresent())
+                .orElseThrow(() -> new ValidationException("userId", "O utilizador não é membro ativo do projeto."));
+        if (assigneeRepository.exists(task.getId(), assigneeId)) {
+            throw new ConflictException("O utilizador já é responsável por esta tarefa.");
+        }
+        assigneeRepository.add(task.getId(), assigneeId);
+        return assignee;
+    }
+
+    @Override
+    @Transactional
+    public void unassign(UUID projectId, UUID taskId, UUID userId, UUID assigneeId) {
+        access.requireMember(projectId, userId);
+        Task task = load(projectId, taskId);
+        if (!assigneeRepository.remove(task.getId(), assigneeId)) {
+            throw new NotFoundException();
+        }
     }
 
     /** The task must belong to the project in the URL, otherwise it is "not found" (EC-05). */

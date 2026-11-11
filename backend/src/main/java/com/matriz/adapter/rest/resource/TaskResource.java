@@ -6,9 +6,12 @@ import java.util.UUID;
 
 import com.matriz.adapter.rest.auth.CurrentUser;
 import com.matriz.adapter.rest.mapper.TaskMapper;
+import com.matriz.adapter.rest.mapper.UserMapper;
+import com.matriz.adapter.rest.to.task.AssigneeCreateTO;
 import com.matriz.adapter.rest.to.task.TaskCreateTO;
 import com.matriz.adapter.rest.to.task.TaskTO;
 import com.matriz.adapter.rest.to.task.TaskUpdateTO;
+import com.matriz.adapter.rest.to.user.UserSummaryTO;
 import com.matriz.application.port.in.TaskUseCases;
 import com.matriz.domain.exception.ValidationException;
 import com.matriz.domain.task.TaskChanges;
@@ -29,6 +32,7 @@ public class TaskResource implements TaskRouter {
     private final CurrentUser currentUser;
     private final TaskUseCases taskUseCases;
     private final TaskMapper mapper;
+    private final UserMapper userMapper;
 
     @Override
     public List<TaskTO> list(UUID projectId, String status, String priority) {
@@ -61,6 +65,18 @@ public class TaskResource implements TaskRouter {
     @Override
     public void delete(UUID projectId, UUID taskId) {
         taskUseCases.delete(projectId, taskId, currentUser.id());
+    }
+
+    @Override
+    public Response addAssignee(UUID projectId, UUID taskId, AssigneeCreateTO body) {
+        UserSummaryTO assignee = userMapper.toSummaryTO(
+                taskUseCases.assign(projectId, taskId, currentUser.id(), body == null ? null : body.userId()));
+        return Response.status(Response.Status.CREATED).entity(assignee).build();
+    }
+
+    @Override
+    public void removeAssignee(UUID projectId, UUID taskId, UUID userId) {
+        taskUseCases.unassign(projectId, taskId, currentUser.id(), userId);
     }
 
     /** Unknown filter values are a 400, not the 404 JAX-RS would give for a failed query param conversion. */

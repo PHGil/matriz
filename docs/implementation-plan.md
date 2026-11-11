@@ -65,8 +65,8 @@ Identity (project manager, comment author, assignment date) is always taken from
 | 0   | Scaffold and persistence     | 2       | Done                             |
 | 1   | Authentication               | 3       | Done                             |
 | 2   | Projects, members, dashboard | 4       | Done                             |
-| 3   | Tasks, filters, progress     | 5       | Not started                      |
-| 4   | Assignees and comments       | 6       | Not started                      |
+| 3   | Tasks, filters, progress     | 5       | Done                             |
+| 4   | Assignees and comments       | 6       | Done                             |
 | 5   | Account administration       | —       | Removed (Keycloak admin console) |
 | 6   | Verification                 | 8       | Not started                      |
 | 7   | Review and delivery          | 9       | Not started                      |
@@ -101,6 +101,7 @@ Identity (project manager, comment author, assignment date) is always taken from
 - **Frontend:** project detail (board with 3 columns, filters, create form, progress bar), task detail (edit, status, priority, delete with confirmation); lists and counts refresh after every operation without reload.
 - **Acceptance:** US-05 – US-08 ACs (with 3–150 rule and default `MEDIUM`), US-09 filters, counts unaffected by filters.
 - **Verification:** tests for title validation, member cannot delete (403), create + get; manual board flow.
+- **Result (Inc 3):** Automated: `TaskResourceTest` (12 tests) — create + read back (API and DB), title/description/priority validation (blank, 2 and 151 chars, 2001-char description, unknown priority → 400 problem+json), status/priority edit and reopening, invalid patches → 400, progress counts and rounding, filters without affecting progress, Manager-only delete (member → 403), outsider → 404, task reached through another project id → 404. Frontend build and unit tests pass.
 
 ### Inc 4 — Assignees and comments (FR-24, FR-27)
 
@@ -108,6 +109,7 @@ Identity (project manager, comment author, assignment date) is always taken from
 - **Frontend:** in task detail — assignee picker (project members), remove assignment, comment list (author, date) and form.
 - **Acceptance:** duplicate assignment refused (409) and never duplicated; non-member or deactivated user refused (400); removing a member removes their assignments; comment 1–2000 and not blank; author/date from backend; data still there after reopening.
 - **Verification:** tests for duplicate assignment, comment validation, comment author = authenticated user.
+- **Result (Inc 4):** Automated: `TaskCollaborationResourceTest` (6 tests) — two assignees listed after reopening and one removed; duplicate assignment → 409 and a single row in `task_assignee`; non-member, unknown and missing user → 400 on `userId`; outsider → 404 on assignees and comments; comment author/date taken from the token (extra `authorId` in the body → 400); blank, empty, missing and 2001-char comments → 400. Manual (browser, Bruno on "Rever proposta"): the picker lists only active members not yet assigned; assigning shows the avatar and name; a comment appears with author and date. Not verified in browser: removing an assignment and the failed-submit paths (covered by API tests).
 
 ### Inc 5 — Account administration (US-02) — removed
 

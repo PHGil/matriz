@@ -9,6 +9,7 @@ import com.matriz.domain.task.TaskChanges;
 import com.matriz.domain.task.TaskDetails;
 import com.matriz.domain.task.TaskPriority;
 import com.matriz.domain.task.TaskStatus;
+import com.matriz.domain.user.User;
 
 /** Input port: task use cases. */
 public interface TaskUseCases {
@@ -28,4 +29,9 @@ public interface TaskUseCases {
 
     /** Members and the Manager can edit any field and change the status (FR-21, FR-23). Last write wins (EC-01). */
     TaskDetails update(UUID projectId, UUID taskId, UUID userId, TaskChanges changes);
+
+    /** Any member can assign an active project member (FR-24); duplicates are refused. */
+    User assign(UUID projectId, UUID taskId, UUID userId, UUID assigneeId);
+
+    void unassign(UUID projectId, UUID taskId, UUID userId, UUID assigneeId);
 }
