@@ -1,12 +1,7 @@
 import { Component, DOCUMENT, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideChevronDown,
-  lucideCircleAlert,
-  lucideLayoutGrid,
-  lucideLogOut,
-} from '@ng-icons/lucide';
+import { lucideChevronDown, lucideCircleAlert, lucideLogOut } from '@ng-icons/lucide';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -25,9 +20,7 @@ import { initials } from './core/ui-helpers';
     HlmButtonImports,
     HlmDropdownMenuImports,
   ],
-  providers: [
-    provideIcons({ lucideChevronDown, lucideCircleAlert, lucideLayoutGrid, lucideLogOut }),
-  ],
+  providers: [provideIcons({ lucideChevronDown, lucideCircleAlert, lucideLogOut })],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',
