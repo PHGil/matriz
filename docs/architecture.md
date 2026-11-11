@@ -39,7 +39,7 @@
 | ADR-07 | Progress (FR-31) is computed on read with an aggregate query; not stored.                                                                                                                                                                                                                                                                                                                                                                                                                       | —      |
 | ADR-08 | **Authentication with Keycloak (OIDC), Class 3.** Realm `matriz`; Angular is a public client using Authorization Code + PKCE and sends the access token as `Bearer` to the API; Quarkus (`quarkus-oidc`, service mode) validates the JWT. Access token lifetime 5 min, refreshed silently while the Keycloak session is valid. Accounts, passwords and deactivation are managed in the Keycloak admin console.                                                                                  | —      |
 | ADR-09 | **Local user projection.** `app_user` mirrors Keycloak users (id = Keycloak `sub`): created/updated on each authenticated request if needed, and synchronised from the Keycloak Admin API at startup and every 5 minutes, so users who never logged in can be added as members and deactivation is reflected (EC-03).                                                                                                                                                                           | —      |
-| ADR-10 | **Onion architecture inside the backend (Class 3).** Layer-first packages `domain` (plain Java: business objects, rules, repository ports), `application` (services/use cases, authorisation, transactions, read-model ports) and `infrastructure` (adapters: `api` REST, `persistence` JPA/SQL, `keycloak`). Dependencies only point inwards; domain objects are separate from JPA entities. Enforced by `ArchitectureTest` (ArchUnit).                                                        | —      |
+| ADR-10 | **Hexagonal / onion architecture inside the backend (Class 3).** Layer-first packages under `com.matriz`: `domain` (plain Java: business objects and rules), `application` (`port.in` use cases, `port.out` ports, `service` implementations with authorisation and transactions) and `adapter` (`rest`, `scheduler`, `persistence`, `keycloak`). Dependencies only point inwards; domain objects are separate from JPA entities and REST TOs, converted by MapStruct mappers. Enforced by `ArchitectureTest` (ArchUnit).                                                        | —      |
 | ADR-11 | **UI library: spartan/ui + Tailwind CSS v4 (Class 3).** spartan/ui is the Angular port of shadcn/ui: accessible behaviour comes from `@spartan-ng/brain` (npm, built on Angular CDK) and the styled "helm" components are copied into `frontend/libs/ui` (alias `@spartan-ng/helm/*`) so they can be edited freely. Theme: shadcn neutral, light and dark (follows the system preference). Icons: Lucide (`@ng-icons/lucide`). Routes are lazy-loaded to keep the initial bundle within budget. | —      |
 
 **Justification:** the MVP has four small, tightly related domains (accounts, projects, members, tasks) sharing one database and needing transactional rules (e.g. EC-02: removing a member unassigns their tasks). Microservices would add distributed consistency and operational cost without any benefit at this scale. A modular monolith keeps the simplicity of a single deployable while enforcing boundaries between modules, which keeps permission rules testable (NFR-09) and allows future extraction if needed.
@@ -95,38 +95,40 @@ The SPA only hides actions the user cannot perform; it never enforces permission
 - Dependencies point one way: `tasks → projects → users`, `auth → users`. No cycles.
 - Every REST endpoint resolves the current user from the access token and checks permissions in the application service before any read or write.
 
-### 4.2.1 Onion layers (ADR-10)
+### 4.2.1 Hexagonal / onion layers (ADR-10)
 
 ```mermaid
 flowchart LR
-    subgraph Infrastructure
-        API["api<br/>REST resources, DTOs,<br/>problem+json, CurrentUser"]
-        PER["persistence<br/>JPA entities, repositories,<br/>SQL read models"]
-        KC["keycloak<br/>user source, sync job"]
+    subgraph Adapters["adapter (driving and driven)"]
+        REST["rest<br/>Router + Resource, TOs,<br/>mappers, problem+json, CurrentUser"]
+        SCH["scheduler<br/>user sync job"]
+        PER["persistence<br/>JPA entities, mappers,<br/>repositories, SQL read models"]
+        KC["keycloak<br/>user source (Admin API)"]
     end
     subgraph Application
-        SVC["services<br/>ProjectService, MemberService,<br/>UserService, ProjectAccess"]
-        APORT["ports<br/>ProjectQueries, ExternalUserSource"]
+        PIN["port.in<br/>ProjectUseCases, MemberUseCases,<br/>TaskUseCases, UserUseCases"]
+        SVC["service<br/>ProjectService, MemberService,<br/>TaskService, UserService, ProjectAccess"]
+        POUT["port.out<br/>Domain*Repository,<br/>DomainProjectSummaryRepository,<br/>DomainExternalUserSource"]
     end
     subgraph Domain
-        DOM["business objects + rules<br/>Project, ProjectMember, User"]
-        DPORT["repository ports<br/>ProjectRepository, MemberRepository,<br/>UserRepository, TaskAssigneeRepository"]
+        DOM["business objects + rules<br/>Project, ProjectMember, Task, User"]
     end
-    API --> SVC
+    REST --> PIN
+    SCH --> PIN
+    SVC -. implements .-> PIN
     SVC --> DOM
-    SVC --> DPORT
-    SVC --> APORT
-    PER -. implements .-> DPORT
-    PER -. implements .-> APORT
-    KC -. implements .-> APORT
-    KC --> SVC
+    SVC --> POUT
+    PER -. implements .-> POUT
+    KC -. implements .-> POUT
 ```
 
-| Layer          | Package                                               | Contains                                                                                                                                               | May depend on                                          |
-| -------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
-| Domain (core)  | `pt.matriz.domain.*`                                  | Business objects with their rules (e.g. `Project.create/change`, `ProjectMember.ensureRemovable`), domain exceptions, repository interfaces            | Java only                                              |
-| Application    | `pt.matriz.application.*`                             | Services orchestrating a use case: authorisation (`ProjectAccess`), transactions, calls to ports; read-model and external ports                        | Domain; CDI and `@Transactional` (pragmatic exception) |
-| Infrastructure | `pt.matriz.infrastructure.{api,persistence,keycloak}` | REST resources and DTOs, mapping of domain exceptions to HTTP, JPA entities and repository implementations, SQL queries, Keycloak Admin API, scheduler | Application and domain; frameworks                     |
+| Layer       | Package                                     | Contains                                                                                                                                                                                  | May depend on                                          |
+| ----------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Domain      | `com.matriz.domain.*`                       | Business objects with their rules (e.g. `Project.create/change`, `ProjectMember.ensureRemovable`), read-model records, domain exceptions, field validation                                | Java only (Lombok getters are compile-time)            |
+| Application | `com.matriz.application.{port,service}`     | `port.in`: use-case interfaces. `port.out`: what the application needs (`persistence`, `identity`). `service`: use-case implementations with authorisation (`ProjectAccess`) and transactions | Domain; CDI and `@Transactional` (pragmatic exception) |
+| Adapter     | `com.matriz.adapter.{rest,scheduler,persistence,keycloak}` | `rest`: JAX-RS `*Router` interface (paths) + `*Resource` (implementation), TOs, MapStruct mappers, error mapping. `persistence`: JPA entities, MapStruct mappers, repository implementations. `keycloak`, `scheduler` | Application ports and domain; frameworks               |
+
+Naming: an output port is `Domain<Name>Repository`; its adapter is `<Name>Repository` in `adapter.persistence.repository`. Adapters never use `application.service` classes directly, only `port.in` interfaces.
 
 ### 4.3 Infrastructure
 
