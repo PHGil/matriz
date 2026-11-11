@@ -24,20 +24,20 @@ Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope). Verificatio
 
 ## Documentation
 
-| File                                                       | Contents                                                                                     |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| [docs/requirements.md](docs/requirements.md)               | Vision, user profiles, functional and non-functional requirements, MVP scope.                |
-| [docs/user-stories.md](docs/user-stories.md)               | Backlog, user stories, acceptance criteria and exceptional cases.                            |
-| [docs/constraints.md](docs/constraints.md)                 | Constraints, assumptions, security and privacy, pending decisions, questions for the client. |
-| [docs/architecture.md](docs/architecture.md)               | Architecture decision (modular monolith), components, ADRs, consistency review.              |
-| [docs/database.md](docs/database.md)                       | Data model, business rules and Mermaid ER diagram.                                           |
-| [openapi.yaml](openapi.yaml)                               | OpenAPI 3.1 contract of the MVP API (authentication via Keycloak).                           |
-| [docs/ui/](docs/ui/)                                       | Low-fidelity wireframe of the project board (`wireframe.svg` / `wireframe.png`).             |
-| [docs/implementation-plan.md](docs/implementation-plan.md) | Scope reconciliation, access rules, technical decisions and increments (Class 3).            |
-| [docs/verification.md](docs/verification.md)               | Verification cases, test results, bugs found and examples of AI use.                         |
-| [docs/test-plan.md](docs/test-plan.md)                     | Test plan (Lab Sheet 04): scenarios, expected results, associated tests and results.         |
-| [docs/quality-security-review.md](docs/quality-security-review.md) | Code review and security review (access control), evidence and decisions.            |
-| [AGENTS.md](AGENTS.md)                                     | Instructions for AI agents working in this repository.                                       |
+| File                                                               | Contents                                                                                     |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| [docs/requirements.md](docs/requirements.md)                       | Vision, user profiles, functional and non-functional requirements, MVP scope.                |
+| [docs/user-stories.md](docs/user-stories.md)                       | Backlog, user stories, acceptance criteria and exceptional cases.                            |
+| [docs/constraints.md](docs/constraints.md)                         | Constraints, assumptions, security and privacy, pending decisions, questions for the client. |
+| [docs/architecture.md](docs/architecture.md)                       | Architecture decision (modular monolith), components, ADRs, consistency review.              |
+| [docs/database.md](docs/database.md)                               | Data model, business rules and Mermaid ER diagram.                                           |
+| [openapi.yaml](openapi.yaml)                                       | OpenAPI 3.1 contract of the MVP API (authentication via Keycloak).                           |
+| [docs/ui/](docs/ui/)                                               | Low-fidelity wireframe of the project board (`wireframe.svg` / `wireframe.png`).             |
+| [docs/implementation-plan.md](docs/implementation-plan.md)         | Scope reconciliation, access rules, technical decisions and increments (Class 3).            |
+| [docs/verification.md](docs/verification.md)                       | Verification cases, test results, bugs found and examples of AI use.                         |
+| [docs/test-plan.md](docs/test-plan.md)                             | Test plan (Lab Sheet 04): scenarios, expected results, associated tests and results.         |
+| [docs/quality-security-review.md](docs/quality-security-review.md) | Code review and security review (access control), evidence and decisions.                    |
+| [AGENTS.md](AGENTS.md)                                             | Instructions for AI agents working in this repository.                                       |
 
 ## Current status
 
@@ -101,11 +101,11 @@ npm start                     # http://localhost:4200 — /api is proxied to the
 
 All demo users share the password `password` (value of `MATRIZ_DEMO_PASSWORD` in `.env`; fictitious, local only).
 
-| Username | Role                                                 |
-| -------- | ---------------------------------------------------- |
-| `ana`    | Manager of "Website 2027" and "Migração de servidores", Member of "Campanha de Natal" |
-| `bruno`  | Member of "Website 2027" and "Migração de servidores", Manager of "Intranet"          |
-| `carla`  | Manager of "Campanha de Natal", Member of "Intranet" (no access to "Website 2027")    |
+| Username | Role                                                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `ana`    | Manager of "Website 2027" and "Migração de servidores", Member of "Campanha de Natal"                                     |
+| `bruno`  | Member of "Website 2027" and "Migração de servidores", Manager of "Intranet"                                              |
+| `carla`  | Manager of "Campanha de Natal", Member of "Intranet" (no access to "Website 2027")                                        |
 | `admin`  | Realm administrator in Keycloak (accounts, FR-03/04); in the dev seed only, Member of all four projects for local testing |
 
 The dev seed ([R__demo_data.sql](backend/src/main/resources/db/seed/R__demo_data.sql)) covers every feature:
@@ -117,12 +117,12 @@ The dev seed ([R__demo_data.sql](backend/src/main/resources/db/seed/R__demo_data
 
 ### Tests
 
-| Level                      | Where                                                                            | Command                                                                                          |
-| -------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Unit + API (backend)       | `backend/src/test` (JUnit, `@QuarkusTest`, ArchUnit)                             | `cd backend && ./mvnw test` (needs Docker: PostgreSQL started by Quarkus Dev Services)           |
-| Frontend unit              | `frontend/src/**/*.spec.ts`                                                      | `cd frontend && npm test -- --watch=false`                                                       |
-| System (API, real stack)   | [system-tests/](system-tests/README.md) (JUnit + REST Assured, real Keycloak tokens) | `cd backend && (set -a; . ../.env; set +a; ./mvnw -f ../system-tests/pom.xml verify)`         |
-| End-to-end (browser)       | `frontend/e2e` (Playwright, Chromium)                                            | `cd frontend && (set -a; . ../.env; set +a; npx playwright test)`                                |
+| Level                    | Where                                                                                | Command                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Unit + API (backend)     | `backend/src/test` (JUnit, `@QuarkusTest`, ArchUnit)                                 | `cd backend && ./mvnw test` (needs Docker: PostgreSQL started by Quarkus Dev Services) |
+| Frontend unit            | `frontend/src/**/*.spec.ts`                                                          | `cd frontend && npm test -- --watch=false`                                             |
+| System (API, real stack) | [system-tests/](system-tests/README.md) (JUnit + REST Assured, real Keycloak tokens) | `cd backend && (set -a; . ../.env; set +a; ./mvnw -f ../system-tests/pom.xml verify)`  |
+| End-to-end (browser)     | `frontend/e2e` (Playwright, Chromium)                                                | `cd frontend && (set -a; . ../.env; set +a; npx playwright test)`                      |
 
 System and E2E tests run against an isolated stack and **never touch the development database**. One-time setup:
 

@@ -13,12 +13,12 @@ src/test/java/com/matriz/systemtests/
 └── utils/                # ConfigHelper (URLs and credentials from the environment)
 ```
 
-| Actor                | Responsibility                                                                                                              |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Test class           | Arrange with `EnvironmentHelper` (real API calls) → act with `given(user)` → assert on the response and on the database.   |
-| `AbstractBaseTest`   | Isolation: every test starts from an empty `matriz_st` (`TRUNCATE` of the application tables) with Ana, Bruno and Carla registered. |
-| `AuthTokenProvider`  | Tokens for `ana`, `bruno`, `carla` from Keycloak (client `matriz-system-tests`, password grant), cached until near expiry.   |
-| `DatabaseHelper`     | Direct JDBC access to `matriz_st` only (the URL is fixed; it never touches the `matriz` development database).               |
+| Actor               | Responsibility                                                                                                                      |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Test class          | Arrange with `EnvironmentHelper` (real API calls) → act with `given(user)` → assert on the response and on the database.            |
+| `AbstractBaseTest`  | Isolation: every test starts from an empty `matriz_st` (`TRUNCATE` of the application tables) with Ana, Bruno and Carla registered. |
+| `AuthTokenProvider` | Tokens for `ana`, `bruno`, `carla` from Keycloak (client `matriz-system-tests`, password grant), cached until near expiry.          |
+| `DatabaseHelper`    | Direct JDBC access to `matriz_st` only (the URL is fixed; it never touches the `matriz` development database).                      |
 
 ## Prerequisites
 
