@@ -101,10 +101,17 @@ All demo users share the password `password` (value of `MATRIZ_DEMO_PASSWORD` in
 
 | Username | Role                                                 |
 | -------- | ---------------------------------------------------- |
-| `ana`    | Manager of "Website 2027"                            |
-| `bruno`  | Member of "Website 2027", Manager of "Intranet"      |
-| `carla`  | Member of "Intranet" (no access to "Website 2027")   |
-| `admin`  | Realm administrator in Keycloak (accounts, FR-03/04) |
+| `ana`    | Manager of "Website 2027" and "Migração de servidores", Member of "Campanha de Natal" |
+| `bruno`  | Member of "Website 2027" and "Migração de servidores", Manager of "Intranet"          |
+| `carla`  | Manager of "Campanha de Natal", Member of "Intranet" (no access to "Website 2027")    |
+| `admin`  | Realm administrator in Keycloak (accounts, FR-03/04)                                  |
+
+The dev seed ([R__demo_data.sql](backend/src/main/resources/db/seed/R__demo_data.sql)) covers every feature:
+
+- "Website 2027" and "Intranet": tasks in all three statuses and priorities, an overdue task, tasks with several assignees, a multi-line description and comment threads from different authors.
+- "Campanha de Natal": no tasks (empty state).
+- "Migração de servidores": every task done (100%).
+- "Intranet" also has an inactive user (Diogo, not in Keycloak) assigned to a task, shown with the "desativado" badge.
 
 ### Tests
 
