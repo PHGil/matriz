@@ -124,6 +124,19 @@ cd frontend && npm test -- --watch=false
 
 [.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master` (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `prettier --check` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml). Format frontend code with `npx prettier --write .` (in `frontend/`) before committing.
 
+### Release
+
+[.github/workflows/release.yml](.github/workflows/release.yml) is run manually (**Actions → Release → Run workflow**, branch `master`, input `version` such as `0.1.0`). It runs the backend and frontend tests, then:
+
+- creates `matriz-backend-<version>.tar.gz` (Quarkus `quarkus-app/`, run with `java -jar quarkus-run.jar`) and `matriz-frontend-<version>.tar.gz` (static build);
+- pushes the images `ghcr.io/<owner>/matriz-backend:<version>` and `ghcr.io/<owner>/matriz-frontend:<version>`;
+- creates the tag `v<version>` and a GitHub Release with the two archives and generated notes.
+
+The version only exists in the tag, release and image names; `pom.xml` and `package.json` are not changed. Container configuration:
+
+- backend: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_URL`, `MATRIZ_BACKEND_CLIENT_SECRET` (the demo seed is dev-only and is not applied);
+- frontend: `BACKEND_URL` (default `http://backend:8080`, target of the `/api` proxy). The Keycloak address is fixed at build time in [app-settings.ts](frontend/src/app/app-settings.ts) (`http://localhost:8180`), so the image only works with a Keycloak reachable at that address from the browser until the hosting decision (D-04) is made.
+
 ### Reset local data
 
 ```bash
