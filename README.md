@@ -12,15 +12,15 @@ Teams need a single place to organise projects, distribute tasks and understand 
 - Create, assign and update tasks.
 - Track the progress of each project.
 
-## Planned MVP features
+## Features
 
-- Username and password authentication; accounts managed by an Administrator.
-- Project creation and member management.
-- Tasks with title, description, assignee, priority, due date and status (To Do / In Progress / Done).
-- Task board by status.
-- Progress indicator per project (percentage of tasks done).
+- Login and logout through Keycloak; accounts managed in the Keycloak console.
+- Projects: create, list, search by name, view, edit and delete (Manager only); member management.
+- Dashboard with the user's projects and task counts per status.
+- Tasks with title, description, priority, due date and status (To Do / In Progress / Done); board by status; filters by status and priority; progress per project; delete (Manager only).
+- Several assignees per task (active project members) and comments with author and date.
 
-Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope).
+Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope). Verification results in [docs/verification.md](docs/verification.md).
 
 ## Documentation
 
@@ -34,6 +34,7 @@ Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope).
 | [openapi.yaml](openapi.yaml)                               | OpenAPI 3.1 contract of the MVP API (authentication via Keycloak).                           |
 | [docs/ui/](docs/ui/)                                       | Low-fidelity wireframe of the project board (`wireframe.svg` / `wireframe.png`).             |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Scope reconciliation, access rules, technical decisions and increments (Class 3).            |
+| [docs/verification.md](docs/verification.md)               | Verification cases, test results, bugs found and examples of AI use.                         |
 | [AGENTS.md](AGENTS.md)                                     | Instructions for AI agents working in this repository.                                       |
 
 ## Current status
