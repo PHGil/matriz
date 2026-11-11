@@ -56,7 +56,7 @@ These entries were written by the assistant from the project record. The develop
 
 ## Limitations
 
-- Not run: GitHub Actions pipeline and the OpenAPI lint step; clean-clone run of the README steps; the 8 h inactivity logout and token expiry while editing (EC-07).
+- Not run: GitHub Actions pipeline and the OpenAPI lint step; start-up of the app from a clean clone (`.env`, `docker compose`, `quarkus:dev`, `npm start`). A clean `git clone` did pass `./mvnw clean test` (45), `npm ci`, `prettier --check`, `ng build` and `ng test` (5); the 8 h inactivity logout and token expiry while editing (EC-07) were not exercised either.
 - Not exercised in the browser in this session: changing status from the board/detail, editing a project, removing a member, delete confirmation dialogs, and the layout on narrow widths. These are covered only by API tests (or earlier manual checks noted in the plan).
 - The demo database was modified by the manual checks (one task and one comment added to the seeded data; one assignment removed). `docker compose down -v` restores the seed.
 - Backend tests need Docker (Dev Services). `ng test` covers only a few UI helpers; there are no component tests for the new assignee and comment components.
