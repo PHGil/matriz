@@ -54,6 +54,10 @@ These entries were written by the assistant from the project record. The develop
 2. **Hexagonal refactor.** Goal: restructure the backend into domain / application ports / adapters. Decision: accepted (ADR-10, commit `b150937`). Verification: `ArchitectureTest` (5 rules) plus the existing API tests passing unchanged.
 3. **Corrected suggestion (assignee picker).** The first draft disabled the "Atribuir" button with `!picker.value`, a template reference that Angular does not track reactively, so the button state could go stale. Decision: replaced by a check on the `eligible()` signal plus a guard in the click handler. Verification: browser run (assign Ana, picker updated; remove Ana, she returned to the picker).
 
+## Lab Sheet 04 — test levels and reviews
+
+Unit, system (integration) and end-to-end tests were added after the verification above; details, commands and results are in [test-plan.md](test-plan.md) and [quality-security-review.md](quality-security-review.md). Latest runs (2026-11-11): backend `./mvnw clean test` 51 tests pass (was 45; six new `TaskTest` cases); `system-tests` 30 tests pass against the `st` backend (run twice); Playwright 2 tests pass (repeated 3 times); `prettier --check` and `ng test` (5) pass. Two review findings are open for the author's decision (F-01, F-02).
+
 ## Limitations
 
 - Not run: GitHub Actions pipeline and the OpenAPI lint step; start-up of the app from a clean clone (`.env`, `docker compose`, `quarkus:dev`, `npm start`). A clean `git clone` did pass `./mvnw clean test` (45), `npm ci`, `prettier --check`, `ng build` and `ng test` (5); the 8 h inactivity logout and token expiry while editing (EC-07) were not exercised either.

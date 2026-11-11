@@ -35,6 +35,8 @@ Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope). Verificatio
 | [docs/ui/](docs/ui/)                                       | Low-fidelity wireframe of the project board (`wireframe.svg` / `wireframe.png`).             |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Scope reconciliation, access rules, technical decisions and increments (Class 3).            |
 | [docs/verification.md](docs/verification.md)               | Verification cases, test results, bugs found and examples of AI use.                         |
+| [docs/test-plan.md](docs/test-plan.md)                     | Test plan (Lab Sheet 04): scenarios, expected results, associated tests and results.         |
+| [docs/quality-security-review.md](docs/quality-security-review.md) | Code review and security review (access control), evidence and decisions.            |
 | [AGENTS.md](AGENTS.md)                                     | Instructions for AI agents working in this repository.                                       |
 
 ## Current status
@@ -115,18 +117,34 @@ The dev seed ([R__demo_data.sql](backend/src/main/resources/db/seed/R__demo_data
 
 ### Tests
 
+| Level                      | Where                                                                            | Command                                                                                          |
+| -------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Unit + API (backend)       | `backend/src/test` (JUnit, `@QuarkusTest`, ArchUnit)                             | `cd backend && ./mvnw test` (needs Docker: PostgreSQL started by Quarkus Dev Services)           |
+| Frontend unit              | `frontend/src/**/*.spec.ts`                                                      | `cd frontend && npm test -- --watch=false`                                                       |
+| System (API, real stack)   | [system-tests/](system-tests/README.md) (JUnit + REST Assured, real Keycloak tokens) | `cd backend && (set -a; . ../.env; set +a; ./mvnw -f ../system-tests/pom.xml verify)`         |
+| End-to-end (browser)       | `frontend/e2e` (Playwright, Chromium)                                            | `cd frontend && (set -a; . ../.env; set +a; npx playwright test)`                                |
+
+System and E2E tests run against an isolated stack and **never touch the development database**. One-time setup:
+
+1. Create the test database: `docker compose exec postgres sh -c 'psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE matriz_st"'`.
+2. Keycloak client `matriz-system-tests` (password grant, local only): it is part of [keycloak/matriz-realm.json](keycloak/matriz-realm.json), so a fresh realm has it. An existing realm needs it created once; see [system-tests/README.md](system-tests/README.md#prerequisites).
+3. Browser for the E2E tests (once): `cd frontend && npx playwright install chromium`.
+
+Before each run, stop the dev backend and start the one with the test profile (no demo data, database `matriz_st`, same port 8080):
+
 ```bash
-cd backend && ./mvnw test     # needs Docker (PostgreSQL started by Quarkus Dev Services)
-cd frontend && npm test -- --watch=false
+cd backend && ./mvnw quarkus:dev -Dquarkus.profile=st
 ```
+
+The E2E tests also need the frontend on port 4200 (`npm start`; Playwright starts it if it is not running). Every test empties `matriz_st` first and creates its own data through the API, so runs can be repeated. Plan, results and limitations: [docs/test-plan.md](docs/test-plan.md); code and security review: [docs/quality-security-review.md](docs/quality-security-review.md).
 
 ### Continuous integration
 
-[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master` (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `prettier --check` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml). Format frontend code with `npx prettier --write .` (in `frontend/`) before committing.
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master` (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `prettier --check` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml). The job `stack-tests` ([stack-tests.yml](.github/workflows/stack-tests.yml), reusable) then starts PostgreSQL and Keycloak with `docker compose` (using `.env.example`), the packaged backend with profile `st`, and runs the system tests and the Playwright E2E tests; on failure it uploads the backend log and the test reports. Format frontend code with `npx prettier --write .` (in `frontend/`) before committing.
 
 ### Release
 
-[.github/workflows/release.yml](.github/workflows/release.yml) is run manually (**Actions → Release → Run workflow**, branch `master`, input `version` such as `0.1.0`). It runs the backend and frontend tests, then:
+[.github/workflows/release.yml](.github/workflows/release.yml) is run manually (**Actions → Release → Run workflow**, branch `master`, input `version` such as `0.1.0`). Three boolean inputs, all `true` by default, choose which tests run before publishing: `run_unit_tests` (backend `./mvnw verify` with unit, API and ArchUnit tests; frontend `prettier --check` and `ng test`), `run_system_tests` and `run_e2e_tests` (via [stack-tests.yml](.github/workflows/stack-tests.yml)). With a test group switched off, its steps are skipped; the packaging and the frontend build always run. The release then:
 
 - creates `matriz-backend-<version>.tar.gz` (Quarkus `quarkus-app/`, run with `java -jar quarkus-run.jar`) and `matriz-frontend-<version>.tar.gz` (static build);
 - pushes the images `ghcr.io/<owner>/matriz-backend:<version>` and `ghcr.io/<owner>/matriz-frontend:<version>`;
