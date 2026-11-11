@@ -77,8 +77,12 @@ jobs:
           docker build --label "$LABEL" -t "ghcr.io/$OWNER/matriz-backend:$VERSION" \
             -f backend/src/main/docker/Dockerfile.jvm backend
           docker build --label "$LABEL" -t "ghcr.io/$OWNER/matriz-frontend:$VERSION" frontend
-          docker push "ghcr.io/$OWNER/matriz-backend:$VERSION"
-          docker push "ghcr.io/$OWNER/matriz-frontend:$VERSION"
+          # The first push of a new GHCR package can be denied until the package is linked to the repo
+          push() {
+            docker push "$1" || { sleep 10; docker push "$1"; }
+          }
+          push "ghcr.io/$OWNER/matriz-backend:$VERSION"
+          push "ghcr.io/$OWNER/matriz-frontend:$VERSION"
 
       - name: Create GitHub release
         run: |
