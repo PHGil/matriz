@@ -36,6 +36,14 @@ INSERT INTO project_member (project_id, user_id, role) VALUES
     ('7c1d4b3a-0000-4000-8000-000000000104', '9a6f0c2e-0000-4000-8000-000000000012', 'MEMBER')
 ON CONFLICT DO NOTHING;
 
+-- Local testing only: the admin account is a Member of every project so it can see all the data.
+INSERT INTO project_member (project_id, user_id, role)
+SELECT p.id, '9a6f0c2e-0000-4000-8000-000000000001', 'MEMBER'
+  FROM project p
+ WHERE p.id IN ('7c1d4b3a-0000-4000-8000-000000000101', '7c1d4b3a-0000-4000-8000-000000000102',
+                '7c1d4b3a-0000-4000-8000-000000000103', '7c1d4b3a-0000-4000-8000-000000000104')
+ON CONFLICT DO NOTHING;
+
 INSERT INTO task (id, project_id, title, description, status, priority, due_date) VALUES
     ('5e2a9f10-0000-4000-8000-000000001001', '7c1d4b3a-0000-4000-8000-000000000101', 'Rever proposta',              NULL,                         'TODO',        'MEDIUM', NULL),
     ('5e2a9f10-0000-4000-8000-000000001002', '7c1d4b3a-0000-4000-8000-000000000101', 'Definir mapa do site',        'Estrutura das páginas',      'TODO',        'HIGH',   DATE '2026-11-15'),

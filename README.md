@@ -104,7 +104,7 @@ All demo users share the password `password` (value of `MATRIZ_DEMO_PASSWORD` in
 | `ana`    | Manager of "Website 2027" and "Migração de servidores", Member of "Campanha de Natal" |
 | `bruno`  | Member of "Website 2027" and "Migração de servidores", Manager of "Intranet"          |
 | `carla`  | Manager of "Campanha de Natal", Member of "Intranet" (no access to "Website 2027")    |
-| `admin`  | Realm administrator in Keycloak (accounts, FR-03/04)                                  |
+| `admin`  | Realm administrator in Keycloak (accounts, FR-03/04); in the dev seed only, Member of all four projects for local testing |
 
 The dev seed ([R__demo_data.sql](backend/src/main/resources/db/seed/R__demo_data.sql)) covers every feature:
 
