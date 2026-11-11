@@ -1,6 +1,6 @@
 # Matriz — Implementation Plan (Class 3)
 
-> Status: **v0.2 — approved scope, implementation not started.** Each increment is implemented, verified and reviewed before the next one starts. Update the **Status** column as work progresses.
+> Status: **v0.4 — all increments done; the clean-clone check of the README steps is pending.** Each increment is implemented, verified and reviewed before the next one starts. Update the **Status** column as work progresses.
 
 ## 1. Scope reconciliation (Lab Sheet 03 vs approved MVP)
 
@@ -68,8 +68,8 @@ Identity (project manager, comment author, assignment date) is always taken from
 | 3   | Tasks, filters, progress     | 5       | Done                             |
 | 4   | Assignees and comments       | 6       | Done                             |
 | 5   | Account administration       | —       | Removed (Keycloak admin console) |
-| 6   | Verification                 | 8       | Not started                      |
-| 7   | Review and delivery          | 9       | Not started                      |
+| 6   | Verification                 | 8       | Done                             |
+| 7   | Review and delivery          | 9       | Done (clean-clone check pending) |
 
 ### Inc 0 — Scaffold and persistence
 
@@ -118,10 +118,12 @@ Covered by the Keycloak admin console (ADR-08) and the user sync (Inc 1). US-02 
 ### Inc 6 — Verification (Lab Ex. 8)
 
 - Create `docs/verification.md` with cases 01–09 (expected, observed, evidence), automated test results, manual checks, limitations and any bug + regression test.
+- **Result (Inc 6):** [verification.md](verification.md) written with cases 01–09, 45 backend + 5 frontend tests, manual browser checks (persistence across a backend restart, API failure keeping the form data) and known gaps.
 
 ### Inc 7 — Review and delivery (Lab Ex. 9)
 
 - AI-assisted diff review (permissions, validation, errors, scope); one refactoring if beneficial; update OpenAPI, docs, AGENTS.md (commands) and README (requirements, setup, seed, demo accounts, run, tests); three AI usage examples in `docs/verification.md`; clean-clone check.
+- **Result (Inc 7):** Review of the US-12/13 diff: every new endpoint goes through `ProjectAccess.requireMember` (outsider → 404), the task is always resolved through the project id in the URL, comment author and assignment come from the token or the validated body, and no files outside the increment changed. Refactoring (separate commit): the "task belongs to the project in the URL" lookup was duplicated in `TaskService` and `CommentService`; extracted into `TaskLookup`. Decision: worth it because the check is a security rule (EC-05) that must not diverge; behaviour preserved (45/45 backend tests before and after). OpenAPI already matched the implemented routes; only the 404 of `removeAssignee` was documented. README (features, docs table), AGENTS.md (commands) and `docs/verification.md` (including three AI-use examples) updated. **Not done:** clean-clone run of the README steps and the CI run.
 
 ## 5. Risks
 

@@ -455,6 +455,7 @@ paths:
       tags: [assignees]
       operationId: removeAssignee
       summary: Remove an assignment
+      description: The user is not an assignee of the task → 404.
       responses:
         '204':
           description: Assignment removed.
