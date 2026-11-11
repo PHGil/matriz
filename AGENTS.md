@@ -24,6 +24,17 @@ These instructions apply to any AI agent working in this repository.
 - Ask for approval before destructive or hard-to-reverse actions: deleting files or data, rewriting Git history, `push`, changing shared configuration or installing/removing dependencies.
 - Verify the work against the applicable acceptance criteria and, when they exist, run the tests.
 
+## Commands
+
+Setup and demo accounts are in [README.md](README.md#running-locally).
+
+- Infrastructure: `docker compose up -d` (PostgreSQL 5432, Keycloak 8180).
+- Backend run: `cd backend && ./mvnw quarkus:dev` (API on 8080).
+- Backend tests: `cd backend && ./mvnw clean test` (needs Docker; add `-s <settings.xml>` if the local Maven settings require it).
+- Frontend (Node 26: `source ~/.nvm/nvm.sh && nvm use 26`): `npm start` (4200), `npx ng build`, `npx ng test --watch=false`.
+- Before committing frontend files: `npx prettier --write <files>` in `frontend/`.
+- Verification results are recorded in [docs/verification.md](docs/verification.md); update them when behaviour changes.
+
 ## Security
 
 - Never write credentials, tokens or personal data in code, logs, commits or responses. Use external configuration (e.g. environment variables) for secrets.
