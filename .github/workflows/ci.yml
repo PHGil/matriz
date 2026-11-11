@@ -47,6 +47,10 @@ jobs:
       - run: npx ng build
       - run: npx ng test --watch=false
 
+  stack-tests:
+    name: System and E2E tests
+    uses: ./.github/workflows/stack-tests.yml
+
   api-contract:
     name: OpenAPI lint
     runs-on: ubuntu-latest

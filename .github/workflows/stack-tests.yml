@@ -1,0 +1,97 @@
+name: Stack tests
+
+# System tests (REST API) and E2E tests (Playwright) against PostgreSQL + Keycloak from docker compose
+# and the packaged backend with profile "st" (database matriz_st). Reused by CI and by the release.
+on:
+  workflow_call:
+    inputs:
+      system:
+        description: 'Run the system tests'
+        type: boolean
+        default: true
+      e2e:
+        description: 'Run the end-to-end tests'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  stack-tests:
+    name: System and E2E tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Fictitious local values, the same ones used for local development
+      - name: Create .env from the example
+        run: cp .env.example .env
+
+      - name: Start PostgreSQL and Keycloak
+        run: |
+          docker compose up -d --wait postgres keycloak
+          for i in $(seq 1 60); do
+            curl -fs http://localhost:8180/realms/matriz >/dev/null && exit 0
+            sleep 2
+          done
+          echo "::error::Keycloak did not become ready"; docker compose logs keycloak; exit 1
+
+      - name: Create the test database
+        run: docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE matriz_st"'
+
+      - name: Package and start the backend (profile st)
+        working-directory: backend
+        run: |
+          ./mvnw -B -DskipTests package
+          set -a; . ../.env; set +a
+          nohup java -Dquarkus.profile=st -jar target/quarkus-app/quarkus-run.jar > ../backend.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fs http://localhost:8080/q/health/ready >/dev/null && exit 0
+            sleep 2
+          done
+          echo "::error::Backend did not become ready"; cat ../backend.log; exit 1
+
+      - name: System tests
+        if: ${{ inputs.system }}
+        working-directory: backend
+        run: |
+          set -a; . ../.env; set +a
+          ./mvnw -B -f ../system-tests/pom.xml verify
+
+      - name: Install frontend dependencies and Chromium
+        if: ${{ inputs.e2e }}
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        if: ${{ inputs.e2e }}
+        working-directory: frontend
+        run: |
+          set -a; . ../.env; set +a
+          npx playwright test
+
+      - name: Upload reports and logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: stack-tests-failure
+          path: |
+            backend.log
+            system-tests/target/failsafe-reports
+            frontend/e2e/results
+          if-no-files-found: ignore

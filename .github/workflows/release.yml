@@ -7,6 +7,18 @@ on:
         description: 'Release version without the "v" prefix (e.g. 0.1.0)'
         required: true
         type: string
+      run_unit_tests:
+        description: 'Run backend and frontend unit/API tests, prettier and ArchUnit'
+        type: boolean
+        default: true
+      run_system_tests:
+        description: 'Run the system tests (API against PostgreSQL and Keycloak)'
+        type: boolean
+        default: true
+      run_e2e_tests:
+        description: 'Run the end-to-end tests (Playwright)'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -17,8 +29,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  stack-tests:
+    name: System and E2E tests
+    if: ${{ inputs.run_system_tests || inputs.run_e2e_tests }}
+    uses: ./.github/workflows/stack-tests.yml
+    with:
+      system: ${{ inputs.run_system_tests }}
+      e2e: ${{ inputs.run_e2e_tests }}
+
   release:
     name: Test, package and publish
+    needs: stack-tests
+    # Runs when the stack tests passed or were not requested
+    if: ${{ !cancelled() && (needs.stack-tests.result == 'success' || needs.stack-tests.result == 'skipped') }}
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ inputs.version }}
@@ -45,21 +68,31 @@ jobs:
           cache: maven
       # Tests use Quarkus Dev Services (PostgreSQL in Docker), available on ubuntu runners
       - name: Backend tests and package
+        if: ${{ inputs.run_unit_tests }}
         working-directory: backend
         run: ./mvnw -B verify
+      - name: Backend package (tests skipped)
+        if: ${{ !inputs.run_unit_tests }}
+        working-directory: backend
+        run: ./mvnw -B package -DskipTests
 
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Frontend format, tests and build
+      - name: Frontend install
+        working-directory: frontend
+        run: npm ci
+      - name: Frontend format and tests
+        if: ${{ inputs.run_unit_tests }}
         working-directory: frontend
         run: |
-          npm ci
           npx prettier --check .
           npx ng test --watch=false
-          npx ng build
+      - name: Frontend build
+        working-directory: frontend
+        run: npx ng build
 
       - name: Create artifacts
         run: |
