@@ -38,6 +38,7 @@ public class TaskService implements TaskUseCases {
     private final DomainUserRepository userRepository;
     private final DomainMemberRepository memberRepository;
     private final ProjectAccess access;
+    private final TaskLookup taskLookup;
 
     @Override
     public List<TaskDetails> list(UUID projectId, UUID userId, TaskStatus status, TaskPriority priority) {
@@ -113,9 +114,7 @@ public class TaskService implements TaskUseCases {
 
     /** The task must belong to the project in the URL, otherwise it is "not found" (EC-05). */
     private Task load(UUID projectId, UUID taskId) {
-        return taskRepository.findById(taskId)
-                .filter(t -> t.getProjectId().equals(projectId))
-                .orElseThrow(NotFoundException::new);
+        return taskLookup.require(projectId, taskId);
     }
 
     private List<TaskDetails> withAssignees(List<Task> tasks) {
