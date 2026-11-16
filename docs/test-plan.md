@@ -115,6 +115,6 @@ No test was changed to hide an application defect, and no production rule was ch
 - **Confirmed by the author (2026-11-16):** the 404-for-non-members rule (from EC-05) and the corrections in Section 2.
 - **Not automated:** concurrent edits (EC-01), token expiry while editing (EC-07), the status change from the board in the UI, member removal in the UI, layout on narrow screens, and a second browser.
 - **Mutation check not done:** the tests were not run against deliberately broken code, so their sensitivity to defects is shown by the assertions only.
-- **CI:** the system and E2E tests run in the `stack-tests` job of `ci.yml` and are optional inputs of `release.yml`. The workflows were only checked for YAML syntax and by running their commands locally (packaged backend with profile `st` + system tests); the commits were pushed, but the result of the GitHub Actions runs was not verified from the local environment.
+- **CI:** the system and E2E tests run in the `stack-tests` job of `ci.yml` and are optional inputs of `release.yml`. The GitHub Actions runs passed, as confirmed by the author on 2026-11-16.
 - **Browsers:** only Chromium.
 - **Environment coupling:** the E2E `resetDB` and the Java `DatabaseHelper` both list the application tables; a new table must be added to both.

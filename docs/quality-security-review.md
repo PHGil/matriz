@@ -71,5 +71,5 @@ No finding was confirmed as a priority defect that warrants a fix in this lab, s
 
 - Static analysis tools: none configured (no ESLint config, no `sonar-project.properties`, no Semgrep).
 - The AI review was not repeated by a second reviewer; the author confirmed the severities and decided F-01 / F-02 (Section 5) on 2026-11-16.
-- Not verified: the result of the GitHub Actions runs (including `stack-tests.yml`); the commits were pushed, but the run status could not be read from the local environment.
+- GitHub Actions runs (including `stack-tests.yml`) passed, as confirmed by the author on 2026-11-16.
 - Not executed: any test against a hosted environment, mutation testing, performance and load checks.
