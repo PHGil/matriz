@@ -21,7 +21,7 @@ class TaskTest {
     @Test
     void newTaskStartsAsTodoWithMediumPriority() {
         Task task = Task.create(projectId, "  Rever proposta  ", " ", null, null);
-        assertEquals("Rever proposta", task.getTitle());
+        assertEquals("Rever proposta (controlled failure)", task.getTitle());
         assertNull(task.getDescription());
         assertEquals(TaskStatus.TODO, task.getStatus());
         assertEquals(TaskPriority.MEDIUM, task.getPriority());
