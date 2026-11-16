@@ -6,7 +6,7 @@ Reviewer: AI assistant acting as Senior Software Engineer and Application Securi
 
 - **Last increment:** commit `14ff9f1` (admin added as Member of the dev demo projects: [R__demo_data.sql](../backend/src/main/resources/db/seed/R__demo_data.sql) and README) and the uncommitted changes of this lab: `%st` profile in [application.properties](../backend/src/main/resources/application.properties), client `matriz-system-tests` in [matriz-realm.json](../keycloak/matriz-realm.json), `TaskTest`, [system-tests/](../system-tests/README.md), `frontend/e2e`.
 - **Authorisation rules:** [ProjectAccess](../backend/src/main/java/com/matriz/application/service/ProjectAccess.java) and its callers in `ProjectService`, `MemberService`, `TaskService`, `CommentService`, plus `UserResource`.
-- **Branch / commit:** branch `master`, based on `14ff9f1`; the changes of this lab are **not committed yet** (no final commit to reference).
+- **Branch / commit:** branch `master`, based on `14ff9f1`. The reviewed changes were committed as `15ca24f`, `6301818`, `94ed779`, `eb1c603`, `898e218` and `48e1661`.
 
 ## 2. Verifications performed
 
@@ -61,8 +61,8 @@ No functional bug was confirmed in the reviewed increment.
 
 | Item  | Decision                                                                                                                                                                                  |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F-01  | Mitigated by documentation only for now (client is local-only, described in README). **Open:** author to decide before the hosting decision (D-04).                                       |
-| F-02  | **Open product decision.** Not fixed: the endpoint behaves as documented in the architecture and OpenAPI contract, and restricting it changes the contract. No regression test added yet. |
+| F-01  | **Accepted for now (author, 2026-11-16).** The client stays in the realm for local use only, as described in the README. To be revisited when hosting (D-04) is decided.                  |
+| F-02  | **Accepted by design (author, 2026-11-16).** An open user directory is acceptable for an internal tool and matches the architecture and the OpenAPI contract. No change.                  |
 | Other | No production code was changed. The only change outside tests and tooling is the `%st` profile (datasource lines) in `application.properties`.                                            |
 
 No finding was confirmed as a priority defect that warrants a fix in this lab, so no fix and no extra regression test were created; the authorisation checks that exist are protected by the 16 authorisation scenarios above.
@@ -70,5 +70,6 @@ No finding was confirmed as a priority defect that warrants a fix in this lab, s
 ## 6. Pending and not executed
 
 - Static analysis tools: none configured (no ESLint config, no `sonar-project.properties`, no Semgrep).
-- The AI review was not repeated by a second reviewer; the author has to confirm severities and the F-01 / F-02 decisions.
-- Not executed: GitHub Actions workflows (including the new `stack-tests.yml`), any test against a hosted environment, mutation testing, performance and load checks.
+- The AI review was not repeated by a second reviewer; the author confirmed the severities and decided F-01 / F-02 (Section 5) on 2026-11-16.
+- Not verified: the result of the GitHub Actions runs (including `stack-tests.yml`); the commits were pushed, but the run status could not be read from the local environment.
+- Not executed: any test against a hosted environment, mutation testing, performance and load checks.

@@ -29,7 +29,7 @@ The scenario matrix was drafted by the AI assistant from the user stories and th
 | The E2E can start already authenticated. | The flow must include the login, so the test signs in through the Keycloak form (US-01).                                   |
 | Tests can use the seeded demo data.      | Seeds are dev-only and mutable; each test creates its data in an emptied `matriz_st`.                                      |
 
-These are the assistant's corrections. The author still has to confirm the choices (Section 5).
+These are the assistant's corrections; the author confirmed them on 2026-11-16 (Section 5).
 
 ## 3. Scenarios, expected results and tests
 
@@ -98,6 +98,8 @@ No fixed waits are used: every step waits on an assertion (`expect(...).toBeVisi
 | `cd frontend && npx playwright test`                                         | 2 passed; `--repeat-each=3` gave 6 passed                                            |
 | `cd frontend && npx prettier --check .` and `npx ng test --watch=false`      | Formatting clean; 5 tests pass (the e2e specs are not picked up by `ng test`)        |
 
+Re-run on 2026-11-16 at commit `f99f7f9`, with the same commands and the backend on profile `st`: backend 51 tests, system tests 30 and E2E `--repeat-each=3` 6 passed, all with 0 failures; formatting clean; frontend 5 tests pass.
+
 Failures found while building the tests were problems of the tests or of the environment, not of the application:
 
 | Symptom                                                           | Classification                       | Resolution                                                                                                                                                     |
@@ -110,9 +112,9 @@ No test was changed to hide an application defect, and no production rule was ch
 
 ## 5. Decisions and limits
 
-- **Author to confirm:** the 404-for-non-members rule is taken from EC-05; the corrections in Section 2 were made by the assistant.
+- **Confirmed by the author (2026-11-16):** the 404-for-non-members rule (from EC-05) and the corrections in Section 2.
 - **Not automated:** concurrent edits (EC-01), token expiry while editing (EC-07), the status change from the board in the UI, member removal in the UI, layout on narrow screens, and a second browser.
 - **Mutation check not done:** the tests were not run against deliberately broken code, so their sensitivity to defects is shown by the assertions only.
-- **CI:** the system and E2E tests run in the `stack-tests` job of `ci.yml` and are optional inputs of `release.yml`. The workflows were only checked for YAML syntax and by running their commands locally (packaged backend with profile `st` + system tests); they have **not** run on GitHub Actions yet.
+- **CI:** the system and E2E tests run in the `stack-tests` job of `ci.yml` and are optional inputs of `release.yml`. The workflows were only checked for YAML syntax and by running their commands locally (packaged backend with profile `st` + system tests); the commits were pushed, but the result of the GitHub Actions runs was not verified from the local environment.
 - **Browsers:** only Chromium.
 - **Environment coupling:** the E2E `resetDB` and the Java `DatabaseHelper` both list the application tables; a new table must be added to both.
