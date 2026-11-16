@@ -59,11 +59,11 @@ No functional bug was confirmed in the reviewed increment.
 
 ## 5. Decisions
 
-| Item  | Decision                                                                                                                                                                                  |
-| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F-01  | **Accepted for now (author, 2026-11-16).** The client stays in the realm for local use only, as described in the README. To be revisited when hosting (D-04) is decided.                  |
-| F-02  | **Accepted by design (author, 2026-11-16).** An open user directory is acceptable for an internal tool and matches the architecture and the OpenAPI contract. No change.                  |
-| Other | No production code was changed. The only change outside tests and tooling is the `%st` profile (datasource lines) in `application.properties`.                                            |
+| Item  | Decision                                                                                                                                                                 |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| F-01  | **Accepted for now (author, 2026-11-16).** The client stays in the realm for local use only, as described in the README. To be revisited when hosting (D-04) is decided. |
+| F-02  | **Accepted by design (author, 2026-11-16).** An open user directory is acceptable for an internal tool and matches the architecture and the OpenAPI contract. No change. |
+| Other | No production code was changed. The only change outside tests and tooling is the `%st` profile (datasource lines) in `application.properties`.                           |
 
 No finding was confirmed as a priority defect that warrants a fix in this lab, so no fix and no extra regression test were created; the authorisation checks that exist are protected by the 16 authorisation scenarios above.
 
