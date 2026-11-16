@@ -37,11 +37,13 @@ Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope). Verificatio
 | [docs/verification.md](docs/verification.md)                       | Verification cases, test results, bugs found and examples of AI use.                         |
 | [docs/test-plan.md](docs/test-plan.md)                             | Test plan (Lab Sheet 04): scenarios, expected results, associated tests and results.         |
 | [docs/quality-security-review.md](docs/quality-security-review.md) | Code review and security review (access control), evidence and decisions.                    |
+| [CHANGELOG.md](CHANGELOG.md)                                       | Changes per version (Semantic Versioning).                                                   |
+| [docs/release-notes-v0.2.0.md](docs/release-notes-v0.2.0.md)       | Notes and verification of the 0.2.0 release candidate.                                       |
 | [AGENTS.md](AGENTS.md)                                             | Instructions for AI agents working in this repository.                                       |
 
 ## Current status
 
-**Implementation phase (Class 3).** Progress per increment in [docs/implementation-plan.md](docs/implementation-plan.md#4-increments).
+**Delivery preparation (Class 5).** Release candidate 0.2.0 ([CHANGELOG.md](CHANGELOG.md)). Progress per increment in [docs/implementation-plan.md](docs/implementation-plan.md#4-increments).
 
 **Stack:** Java 17 + Quarkus 3.40 LTS (REST API), Angular 22 (SPA), PostgreSQL 18, Keycloak 26 (authentication).
 
@@ -88,6 +90,23 @@ cd frontend
 npm install
 npm start                     # http://localhost:4200 — /api is proxied to the backend
 ```
+
+### Full application in containers
+
+To run everything in Docker instead of steps 2–4 (only Docker and the `.env` from step 1 are needed):
+
+```bash
+docker compose --profile app up -d --build --wait   # PostgreSQL, Keycloak, backend, frontend
+docker compose --profile app ps                     # all four services "healthy"
+docker compose --profile app logs --tail=50
+```
+
+Open <http://localhost:4200> (nginx serves the SPA and proxies `/api` to the backend). Ports 4200 and 8080 must be free, so stop `npm start` and `quarkus:dev` first.
+
+- The images are built from source by [backend/Dockerfile](backend/Dockerfile) and [frontend/Dockerfile](frontend/Dockerfile); tests are not run in the image build (they run in CI).
+- The backend runs the `prod` profile: schema only, no demo data. On a database that already has the dev seed, the existing data is shown.
+- Data lives in the `postgres-data` volume and survives `docker compose --profile app down`; `down -v` deletes it.
+- Stop the app containers and keep the infrastructure for development: `docker compose stop backend frontend`.
 
 ### Authentication (Keycloak)
 
@@ -140,7 +159,7 @@ The E2E tests also need the frontend on port 4200 (`npm start`; Playwright start
 
 ### Continuous integration
 
-[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master` (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `prettier --check` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml). The job `stack-tests` ([stack-tests.yml](.github/workflows/stack-tests.yml), reusable) then starts PostgreSQL and Keycloak with `docker compose` (using `.env.example`), the packaged backend with profile `st`, and runs the system tests and the Playwright E2E tests; on failure it uploads the backend log and the test reports. Format frontend code with `npx prettier --write .` (in `frontend/`) before committing.
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master`, on pull requests (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `prettier --check` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml). The job `stack-tests` ([stack-tests.yml](.github/workflows/stack-tests.yml), reusable) then starts PostgreSQL and Keycloak with `docker compose` (using `.env.example`), the packaged backend with profile `st`, and runs the system tests and the Playwright E2E tests; on failure it uploads the backend log and the test reports. When all of these pass, the job `docker` builds the backend and frontend images with `docker compose --profile app build` (nothing is pushed). The workflow only has `contents: read` permission and uses the fictitious `.env.example`. Format frontend code with `npx prettier --write .` (in `frontend/`) before committing.
 
 ### Release
 
@@ -153,7 +172,7 @@ The E2E tests also need the frontend on port 4200 (`npm start`; Playwright start
 The version only exists in the tag, release and image names; `pom.xml` and `package.json` are not changed. Container configuration:
 
 - backend: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_URL`, `MATRIZ_BACKEND_CLIENT_SECRET` (the demo seed is dev-only and is not applied);
-- frontend: `BACKEND_URL` (default `http://backend:8080`, target of the `/api` proxy). The Keycloak address is fixed at build time in [app-settings.ts](frontend/src/app/app-settings.ts) (`http://localhost:8180`), so the image only works with a Keycloak reachable at that address from the browser until the hosting decision (D-04) is made.
+- frontend: `BACKEND_URL` (default `http://backend:8080`, target of the `/api` proxy). The Keycloak address is fixed at build time in [app-settings.ts](frontend/src/app/app-settings.ts) (`http://localhost:8180`), so the image only works with a Keycloak reachable at that address from the browser until the deployment (D-04: Render + Neon) is configured.
 
 ### Reset local data
 

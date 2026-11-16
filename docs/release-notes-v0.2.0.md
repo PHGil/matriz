@@ -1,0 +1,36 @@
+# Matriz 0.2.0 — release candidate notes
+
+Status: **candidate**, not published. Proposed tag `v0.2.0` (Semantic Versioning: new backward-compatible capabilities over `v0.1.0`, no API or schema change). Changes in [CHANGELOG.md](../CHANGELOG.md#020---unreleased-release-candidate).
+
+## Highlights
+
+- **Run the whole app with one command.** `docker compose --profile app up -d --build` builds and starts PostgreSQL, Keycloak, backend and frontend; open <http://localhost:4200>. The images build from source, so no local Java or Node is needed for this mode.
+- **Safer pipeline.** CI runs on pushes to `master` and on pull requests; Docker images are built only after the backend, frontend, stack and OpenAPI checks pass.
+- **More tests.** API system tests against a real stack and a Playwright end-to-end test of the main flow, also run in CI.
+
+No functional change for users, no API change ([openapi.yaml](../openapi.yaml)) and no database migration.
+
+## Upgrade notes
+
+- `docker-compose.yml` is now `compose.yaml`. Plain `docker compose up -d` still starts only PostgreSQL and Keycloak for development.
+- Keycloak now has `KC_HOSTNAME=http://localhost:8180`; recreate it with `docker compose up -d keycloak`. Existing data is kept.
+- Backend container variables are unchanged: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_URL`, `MATRIZ_BACKEND_CLIENT_SECRET`; frontend: `BACKEND_URL`.
+
+## Verification
+
+| Check                                                                       | Result (2026-11-16)                                                                                                                                          |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Backend unit + API tests, system tests, E2E (×3), frontend tests and format | 51, 30, 6 and 5 passed; formatting clean ([test-plan.md](test-plan.md#4-results-real-executions-2026-11-11-linux-java-17-node-26)), at commit `f99f7f9`      |
+| `docker compose config -q`, `docker compose --profile app build`            | OK; images `matriz-backend` 451 MB, `matriz-frontend` 63 MB                                                                                                  |
+| `docker compose --profile app up -d --wait`                                 | All four services `healthy`                                                                                                                                  |
+| Main flow on the containers                                                 | Login as `ana` in the browser (Keycloak, PKCE) → dashboard with 3 projects; API through nginx with a real token: `/auth/me`, `/projects`, tasks answer `200` |
+| Data after `docker compose --profile app down` + `up`                       | Same projects returned (volume kept)                                                                                                                         |
+| Logs                                                                        | No errors; Keycloak warnings only (deprecated default features, "Full scope allowed" on two clients)                                                         |
+| GitHub Actions for the new CI job (Docker build, pull requests)             | Not run yet (commits not pushed)                                                                                                                             |
+
+## Known limitations
+
+- The Keycloak address used by the browser is fixed at build time (`http://localhost:8180` in [app-settings.ts](../frontend/src/app/app-settings.ts)), and the realm only allows `http://localhost:4200` as redirect URI. The images therefore run only locally until the deployment (D-04: Render + Neon) is configured.
+- Keycloak runs with `start-dev` (HTTP, development mode); not suitable for a public deployment.
+- The realm still contains the local-only test client `matriz-system-tests` (F-01, accepted for local use) and the demo password.
+- Not automated: concurrent edits, token expiry while editing, narrow screens, browsers other than Chromium (see [test-plan.md](test-plan.md#5-decisions-and-limits)).

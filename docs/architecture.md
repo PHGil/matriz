@@ -139,7 +139,30 @@ Naming: an output port is `Domain<Name>Repository`; its adapter is `<Name>Reposi
 | Keycloak      | Identity provider: login page, passwords, accounts, tokens (ADR-08).      |
 | Configuration | Secrets (DB credentials, etc.) via environment variables only (S-08).     |
 
-Hosting remains open (**D-04**).
+Hosting (**D-04**) is decided: Render for the frontend, backend and Keycloak containers, Neon for PostgreSQL (product owner, Class 5). The deployment itself is not done yet; until then the app runs locally with Docker Compose.
+
+### 4.4 Running with Docker Compose
+
+`docker compose up -d` starts the infrastructure for development; `docker compose --profile app up -d --build` also builds and starts the application containers ([compose.yaml](../compose.yaml)). All services share the default Compose network and are started in health order.
+
+```mermaid
+flowchart LR
+    B[Browser] -->|":4200 SPA + /api"| FE["frontend<br/>nginx (static SPA, /api proxy)"]
+    B -->|":8180 login, tokens"| KC["keycloak<br/>Keycloak 26"]
+    FE -->|"/api → backend:8080"| BE["backend<br/>Quarkus (profile prod)"]
+    BE -->|"JDBC postgres:5432/matriz"| PG[("postgres<br/>PostgreSQL 18<br/>volume postgres-data")]
+    BE -->|"JWKS, Admin API keycloak:8180"| KC
+    KC -->|"JDBC postgres:5432/keycloak"| PG
+```
+
+| Service    | Image / build                                 | Port (host) | Healthcheck                  | Starts after           |
+| ---------- | --------------------------------------------- | ----------- | ---------------------------- | ---------------------- |
+| `postgres` | `postgres:18`                                 | 5432        | `pg_isready`                 | —                      |
+| `keycloak` | `quay.io/keycloak/keycloak:26.8.1`            | 8180        | `/health/ready` on port 9000 | `postgres` healthy     |
+| `backend`  | [backend/Dockerfile](../backend/Dockerfile)   | 8080        | `/q/health/ready`            | `postgres`, `keycloak` |
+| `frontend` | [frontend/Dockerfile](../frontend/Dockerfile) | 4200 → 80   | `GET /`                      | `backend` healthy      |
+
+Keycloak issues tokens with the fixed issuer `http://localhost:8180` (`KC_HOSTNAME`) while allowing back-channel calls on `keycloak:8180` (`KC_HOSTNAME_BACKCHANNEL_DYNAMIC`), so the token the browser gets is valid for the backend inside the network.
 
 ## 5. Cross-cutting concerns
 
@@ -161,7 +184,7 @@ Hosting remains open (**D-04**).
 | AA-02 | A single deployable is enough for availability needs; no high-availability requirement stated.                            | Assumption |
 | AA-03 | ~~Lockout abuse mitigation~~ — obsolete: lockout (NFR-04) removed in Class 3.                                             | Closed     |
 | AA-04 | Initial password set by the Administrator in Keycloak (IMP-11).                                                           | Closed     |
-| AA-05 | Hosting and deployment (D-04), SSO/2FA (D-06), retention (D-07) and user deletion (D-08) remain open.                     | Pending    |
+| AA-05 | SSO/2FA (D-06), retention (D-07) and user deletion (D-08) remain open. Hosting (D-04) decided in Class 5.                 | Pending    |
 
 ## 7. Consistency review (Exercise 5)
 
