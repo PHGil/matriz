@@ -1,4 +1,8 @@
-*
-!Dockerfile
-!nginx.conf.template
-!dist/frontend/browser
+node_modules
+dist
+.angular
+.nx
+.vscode
+e2e
+playwright.config.ts
+**/*.spec.ts

@@ -115,7 +115,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: backend
-          file: backend/src/main/docker/Dockerfile.jvm
           push: true
           provenance: false
           tags: ghcr.io/${{ env.OWNER }}/matriz-backend:${{ inputs.version }}
