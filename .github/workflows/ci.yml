@@ -3,6 +3,7 @@ name: CI Pipeline
 on:
   push:
     branches: [master]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -60,3 +61,13 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: npx --yes @redocly/cli@2.72.0 lint openapi.yaml
+
+  docker:
+    name: Docker images (build only)
+    needs: [backend, frontend, stack-tests, api-contract]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: cp .env.example .env
+      - run: docker compose --profile app config -q
+      - run: docker compose --profile app build
