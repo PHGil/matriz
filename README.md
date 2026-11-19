@@ -113,7 +113,7 @@ Open <http://localhost:4200> (nginx serves the SPA and proxies `/api` to the bac
 
 [docs/deployment.md](docs/deployment.md) explains how to deploy the three containers using [render.yaml](render.yaml), with separate persistent PostgreSQL databases in Neon and public HTTPS URLs. Configure credentials only in the provider dashboards. The cloud Keycloak image uses production mode and excludes local demo accounts and the test-only client; create presentation accounts in its admin console.
 
-Free Render services sleep and share a monthly runtime allowance, so this is a demonstration deployment, not guaranteed always-on hosting. Cloud deployment and public-URL verification are still pending.
+Free Render services sleep and share a monthly runtime allowance, so this is a demonstration deployment, not guaranteed always-on hosting. Public demo: https://matriz-frontend-gpxo.onrender.com (first request after idle can take about a minute); results in [verification.md](docs/verification.md).
 
 ### Authentication (Keycloak)
 

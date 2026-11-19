@@ -82,7 +82,30 @@ Approved scope: three Render free container services and separate Neon databases
 
 The TLS smoke used generated local certificates trusted explicitly by Java/nginx/curl. Chromium ignored the test certificate's trust error only in that isolated test context; production images do not disable certificate verification. The local simulation validates wiring, not Render's certificates, 0.1-CPU startup timing, public-network behaviour or Neon's real endpoints.
 
-**Still pending:** actual Render/Neon setup, account-side Blueprint validation, public URLs and HTTP→HTTPS redirects, real Neon CA/connectivity/role permissions, sustained memory/load/free-quota behaviour, public two-user membership checks and data persistence after a cloud redeploy. GitHub Actions changes have not run remotely; the full existing system/E2E suites were not rerun in this task (the isolated Chromium production-image smoke above was run). No cloud acceptance results are claimed.
+**Still pending after the preparation step** (resolved partly below): actual Render/Neon setup and public checks.
+
+## Render + Neon deployment — 2026-11-19
+
+Commits `c7544c9` and `f1e3e77` pushed to `master` (approved); GitHub Actions run for `f1e3e77`: **success**. Resources created through the providers' APIs: Neon Free project `matriz` (PostgreSQL 18, `aws-eu-central-1`, direct endpoint) with databases `matriz`/`keycloak` owned by separate roles `matriz_app`/`matriz_keycloak`; three Render Free Docker web services in Frankfurt with `autoDeployTrigger: checksPass`. Render added suffixes to two hostnames, so `BACKEND_URL` was corrected and the frontend redeployed. Credentials were set only as provider environment variables and in a private file outside the repository.
+
+| Public URL | Service |
+| --- | --- |
+| https://matriz-frontend-gpxo.onrender.com | Frontend (application entry point) |
+| https://matriz-backend-kayx.onrender.com | Backend API |
+| https://matriz-keycloak.onrender.com | Keycloak |
+
+| Check | Result |
+| --- | --- |
+| All three Render deploys of `f1e3e77` | `live`. |
+| Keycloak discovery | Issuer `https://matriz-keycloak.onrender.com/realms/matriz`. |
+| Backend `/q/health/ready` | `UP`, database check `UP` (Neon over TLS, `sslmode=verify-full`). |
+| Frontend `/config.js` and `/` | Keycloak origin is the public HTTPS URL; `/` returns `200`. |
+| Unauthenticated `/api/v1/projects` through the frontend | `401`. |
+| `http://` frontend | `301` to the HTTPS URL. |
+| Presentation accounts | Fictitious `ana`, `bruno`, `carla` created in realm `matriz` through the admin API with unique random passwords (not in the repository). |
+| Chromium against the public URLs | `ana` logs in with Authorization Code + PKCE; `/auth/me` and `/api/v1/projects` return `200`; Projetos page loads; **Sair** returns to the Keycloak login. No test data was created. |
+
+**Still pending:** two-user membership checks on the public deployment, data persistence after a cloud redeploy, sustained memory/load and free-quota behaviour. Keycloak still uses the temporary bootstrap admin account. No full system/E2E suite is run against the cloud (they truncate data).
 
 ## Limitations
 

@@ -7,7 +7,7 @@ Status: **candidate**, not published. Proposed tag `v0.2.0` (Semantic Versioning
 - **Run the whole app with one command.** `docker compose --profile app up -d --build` builds and starts PostgreSQL, Keycloak, backend and frontend; open <http://localhost:4200>. The images build from source, so no local Java or Node is needed for this mode.
 - **Safer pipeline.** CI runs on pushes to `master` and on pull requests; Docker images are built only after the backend, frontend, stack and OpenAPI checks pass.
 - **More tests.** API system tests against a real stack and a Playwright end-to-end test of the main flow, also run in CI.
-- **Cloud deployment preparation.** Render Blueprint, production Keycloak image and Neon TLS instructions in [deployment.md](deployment.md). Public deployment is still pending.
+- **Cloud deployment preparation.** Render Blueprint, production Keycloak image and Neon TLS instructions in [deployment.md](deployment.md). Deployed at https://matriz-frontend-gpxo.onrender.com.
 
 No new user-facing features, endpoints or database migration. Concurrent first-login requests now create one user projection instead of failing; an email owned by a different identity is reported explicitly as a conflict ([openapi.yaml](../openapi.yaml)).
 
@@ -33,6 +33,6 @@ Deployment-preparation verification (2026-11-19), including the first-login fix,
 
 ## Known limitations
 
-- Cloud deployment, real Neon connectivity, public HTTPS login/logout and Render memory/quota behaviour still need verification. See [deployment.md](deployment.md).
+- Public two-user checks, persistence after a cloud redeploy and Render memory/quota behaviour still need verification. See [deployment.md](deployment.md).
 - Local Compose intentionally uses `start-dev` and the local realm with demo accounts and the test-only client; only the separate `keycloak/Dockerfile` is intended for Render.
 - Not automated: concurrent edits, token expiry while editing, narrow screens, browsers other than Chromium (see [test-plan.md](test-plan.md#5-decisions-and-limits)).
