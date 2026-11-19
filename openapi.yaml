@@ -22,6 +22,10 @@ info:
     **Validation.** Text fields are trimmed before validation; whitespace-only
     values are rejected. Errors use RFC 9457 `application/problem+json`.
 
+    **Identity projection.** Concurrent first use creates one local user record.
+    If another identity already owns the same email, projection fails explicitly
+    with `409` rather than attaching the session to that other user's record.
+
     All traffic must use HTTPS in deployment (NFR-02).
 servers:
   - url: http://localhost:8080/api/v1
@@ -50,7 +54,7 @@ paths:
       tags: [auth]
       operationId: getCurrentUser
       summary: Get the authenticated user
-      description: Creates or updates the local user record from the token claims on first use (ADR-09).
+      description: Creates or updates the local user record from the token claims on first use (ADR-09), safely under concurrent requests.
       responses:
         '200':
           description: Current user.
@@ -60,6 +64,8 @@ paths:
                 $ref: '#/components/schemas/CurrentUser'
         '401':
           $ref: '#/components/responses/Unauthenticated'
+        '409':
+          $ref: '#/components/responses/Conflict'
 
   /projects:
     get:

@@ -9,6 +9,7 @@ import java.util.UUID;
 import com.matriz.adapter.persistence.entity.UserEntity;
 import com.matriz.adapter.persistence.mapper.UserEntityMapper;
 import com.matriz.application.port.out.persistence.DomainUserRepository;
+import com.matriz.domain.exception.ConflictException;
 import com.matriz.domain.user.User;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -45,6 +46,23 @@ public class UserRepository implements DomainUserRepository {
                 .setParameter("email", email)
                 .setParameter("id", exceptId)
                 .getSingleResult() > 0;
+    }
+
+    @Override
+    public User insertIfAbsent(User user) {
+        // Login requests and directory sync can discover the same new user concurrently.
+        em.createNativeQuery("""
+                insert into app_user (id, name, email, active)
+                values (:id, :name, :email, :active)
+                on conflict do nothing
+                """)
+                .setParameter("id", user.getId())
+                .setParameter("name", user.getName())
+                .setParameter("email", user.getEmail())
+                .setParameter("active", user.isActive())
+                .executeUpdate();
+        return findById(user.getId()).orElseThrow(
+                () -> new ConflictException("O email já está associado a outro utilizador."));
     }
 
     @Override

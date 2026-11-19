@@ -17,6 +17,9 @@ public interface DomainUserRepository {
 
     boolean emailUsedByAnother(String email, UUID exceptId);
 
+    /** Atomically inserts a new projection, or returns the existing one without changing it. */
+    User insertIfAbsent(User user);
+
     /** Inserts or updates. */
     void save(User user);
 

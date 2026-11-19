@@ -32,9 +32,7 @@ public class UserService implements UserUseCases {
     public User registerLogin(UUID id, String name, String email) {
         Optional<User> existing = userRepository.findById(id);
         if (existing.isEmpty()) {
-            User user = new User(id, name, email, true);
-            userRepository.save(user);
-            return user;
+            return userRepository.insertIfAbsent(new User(id, name, email, true));
         }
         User user = existing.get();
         if (user.refresh(name, email, user.isActive())) {
@@ -56,7 +54,11 @@ public class UserService implements UserUseCases {
                             + ": email already used by another user");
                     continue;
                 }
-                userRepository.save(new User(external.id(), external.name(), external.email(), external.active()));
+                User user = userRepository.insertIfAbsent(
+                        new User(external.id(), external.name(), external.email(), external.active()));
+                if (user.refresh(external.name(), external.email(), external.active())) {
+                    userRepository.save(user);
+                }
             } else if (existing.get().refresh(external.name(), external.email(), external.active())) {
                 userRepository.save(existing.get());
             }
