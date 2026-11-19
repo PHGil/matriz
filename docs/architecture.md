@@ -139,7 +139,9 @@ Naming: an output port is `Domain<Name>Repository`; its adapter is `<Name>Reposi
 | Keycloak      | Identity provider: login page, passwords, accounts, tokens (ADR-08).      |
 | Configuration | Secrets (DB credentials, etc.) via environment variables only (S-08).     |
 
-Hosting (**D-04**) is decided: Render for the frontend, backend and Keycloak containers, Neon for PostgreSQL (product owner, Class 5). The deployment itself is not done yet; until then the app runs locally with Docker Compose.
+Hosting (**D-04**) is decided: Render for the frontend, backend and Keycloak containers, Neon for PostgreSQL (product owner, Class 5). [render.yaml](../render.yaml) declares three free public web services; all inter-service requests use public HTTPS because free services cannot receive private-network traffic. Neon holds separate application and Keycloak databases, connected using verified JDBC TLS. The frontend keeps same-origin `/api` through nginx and reads its Keycloak origin from startup-generated `/config.js`.
+
+The cloud [Keycloak image](../keycloak/Dockerfile) runs `start --optimized` behind Render TLS termination with trusted proxy headers, a single-instance local cache and a production realm derived from the local definition without demo users or the test-only password-grant client. Secrets remain in provider environment variables. Free-tier sleep, shared runtime quotas and Java memory limits make this a demonstration setup, not an always-on availability guarantee. Setup, first-import limitations and verification checklist: [deployment.md](deployment.md). The cloud deployment itself is still pending; local Docker Compose remains unchanged.
 
 ### 4.4 Running with Docker Compose
 

@@ -69,5 +69,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: cp .env.example .env
+      - run: docker run --rm -v "$PWD/keycloak:/realm:ro" -w /realm node:26-alpine node --test production-realm.test.mjs
       - run: docker compose --profile app config -q
       - run: docker compose --profile app build
+      - run: docker build -t matriz-keycloak:ci keycloak

@@ -30,6 +30,7 @@ Details in [docs/requirements.md](docs/requirements.md#5-mvp-scope). Verificatio
 | [docs/user-stories.md](docs/user-stories.md)                       | Backlog, user stories, acceptance criteria and exceptional cases.                            |
 | [docs/constraints.md](docs/constraints.md)                         | Constraints, assumptions, security and privacy, pending decisions, questions for the client. |
 | [docs/architecture.md](docs/architecture.md)                       | Architecture decision (modular monolith), components, ADRs, consistency review.              |
+| [docs/deployment.md](docs/deployment.md)                           | Render + Neon setup, production Keycloak, secrets, free-tier limits and presentation checks. |
 | [docs/database.md](docs/database.md)                               | Data model, business rules and Mermaid ER diagram.                                           |
 | [openapi.yaml](openapi.yaml)                                       | OpenAPI 3.1 contract of the MVP API (authentication via Keycloak).                           |
 | [docs/ui/](docs/ui/)                                               | Low-fidelity wireframe of the project board (`wireframe.svg` / `wireframe.png`).             |
@@ -108,6 +109,12 @@ Open <http://localhost:4200> (nginx serves the SPA and proxies `/api` to the bac
 - Data lives in the `postgres-data` volume and survives `docker compose --profile app down`; `down -v` deletes it.
 - Stop the app containers and keep the infrastructure for development: `docker compose stop backend frontend`.
 
+### Deploying online (Render + Neon)
+
+[docs/deployment.md](docs/deployment.md) explains how to deploy the three containers using [render.yaml](render.yaml), with separate persistent PostgreSQL databases in Neon and public HTTPS URLs. Configure credentials only in the provider dashboards. The cloud Keycloak image uses production mode and excludes local demo accounts and the test-only client; create presentation accounts in its admin console.
+
+Free Render services sleep and share a monthly runtime allowance, so this is a demonstration deployment, not guaranteed always-on hosting. Cloud deployment and public-URL verification are still pending.
+
 ### Authentication (Keycloak)
 
 1. Opening the app redirects to the Keycloak login page of realm `matriz` (OIDC Authorization Code + PKCE, client `matriz-frontend`).
@@ -159,7 +166,7 @@ The E2E tests also need the frontend on port 4200 (`npm start`; Playwright start
 
 ### Continuous integration
 
-[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master`, on pull requests (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `prettier --check` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml). The job `stack-tests` ([stack-tests.yml](.github/workflows/stack-tests.yml), reusable) then starts PostgreSQL and Keycloak with `docker compose` (using `.env.example`), the packaged backend with profile `st`, and runs the system tests and the Playwright E2E tests; on failure it uploads the backend log and the test reports. When all of these pass, the job `docker` builds the backend and frontend images with `docker compose --profile app build` (nothing is pushed). The workflow only has `contents: read` permission and uses the fictitious `.env.example`. Format frontend code with `npx prettier --write .` (in `frontend/`) before committing.
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `master`, on pull requests (or manually): backend `./mvnw -B verify` (unit, API and ArchUnit tests), frontend `npm ci` + `prettier --check` + `ng build` + `ng test`, and an OpenAPI lint of [openapi.yaml](openapi.yaml). The job `stack-tests` ([stack-tests.yml](.github/workflows/stack-tests.yml), reusable) then starts PostgreSQL and Keycloak with `docker compose` (using `.env.example`), the packaged backend with profile `st`, and runs the system tests and the Playwright E2E tests; on failure it uploads the backend log and the test reports. When all of these pass, the job `docker` checks the production realm, builds the backend and frontend images with `docker compose --profile app build`, and builds the production Keycloak image (nothing is pushed). The workflow only has `contents: read` permission and uses the fictitious `.env.example`. Format frontend code with `npx prettier --write .` (in `frontend/`) before committing.
 
 ### Release
 
@@ -171,8 +178,8 @@ The E2E tests also need the frontend on port 4200 (`npm start`; Playwright start
 
 The version only exists in the tag, release and image names; `pom.xml` and `package.json` are not changed. Container configuration:
 
-- backend: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_URL`, `MATRIZ_BACKEND_CLIENT_SECRET` (the demo seed is dev-only and is not applied);
-- frontend: `BACKEND_URL` (default `http://backend:8080`, target of the `/api` proxy). The Keycloak address is fixed at build time in [app-settings.ts](frontend/src/app/app-settings.ts) (`http://localhost:8180`), so the image only works with a Keycloak reachable at that address from the browser until the deployment (D-04: Render + Neon) is configured.
+- backend: `DB_HOST`, `DB_PORT`, `DB_NAME`, or optional full `DB_JDBC_URL`; `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_URL`, `MATRIZ_BACKEND_CLIENT_SECRET` (the demo seed is dev-only and is not applied);
+- frontend: `BACKEND_URL` (default `http://backend:8080`, target of the `/api` proxy), `KEYCLOAK_URL` (default `http://localhost:8180`, browser-facing origin written to `/config.js` at startup). HTTPS upstream certificates are verified. See [deployment.md](docs/deployment.md) for cloud settings and the separate production Keycloak image.
 
 ### Reset local data
 

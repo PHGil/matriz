@@ -1,0 +1,93 @@
+# Free services cannot receive private-network traffic. Use public HTTPS origins.
+services:
+  - type: web
+    name: matriz-keycloak
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerContext: ./keycloak
+    dockerfilePath: ./keycloak/Dockerfile
+    autoDeployTrigger: checksPass
+    healthCheckPath: /realms/matriz/.well-known/openid-configuration
+    envVars:
+      - key: PORT
+        value: '10000'
+      - key: KC_HOSTNAME
+        sync: false
+      - key: MATRIZ_FRONTEND_URL
+        sync: false
+      - key: KC_DB_URL
+        sync: false
+      - key: KC_DB_USERNAME
+        sync: false
+      - key: KC_DB_PASSWORD
+        sync: false
+      - key: KC_DB_POOL_INITIAL_SIZE
+        value: '1'
+      - key: KC_DB_POOL_MIN_SIZE
+        value: '1'
+      - key: KC_DB_POOL_MAX_SIZE
+        value: '5'
+      - key: KC_BOOTSTRAP_ADMIN_USERNAME
+        sync: false
+      - key: KC_BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: MATRIZ_BACKEND_CLIENT_SECRET
+        generateValue: true
+      - key: JAVA_OPTS_KC_HEAP
+        value: '-Xms64m -Xmx256m'
+
+  - type: web
+    name: matriz-backend
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    autoDeployTrigger: checksPass
+    healthCheckPath: /q/health/ready
+    envVars:
+      - key: PORT
+        value: '8080'
+      - key: DB_JDBC_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: QUARKUS_DATASOURCE_JDBC_MIN_SIZE
+        value: '0'
+      - key: QUARKUS_DATASOURCE_JDBC_MAX_SIZE
+        value: '5'
+      - key: KEYCLOAK_URL
+        fromService:
+          type: web
+          name: matriz-keycloak
+          envVarKey: KC_HOSTNAME
+      - key: MATRIZ_BACKEND_CLIENT_SECRET
+        fromService:
+          type: web
+          name: matriz-keycloak
+          envVarKey: MATRIZ_BACKEND_CLIENT_SECRET
+      - key: JAVA_MAX_MEM_RATIO
+        value: '50'
+
+  - type: web
+    name: matriz-frontend
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    autoDeployTrigger: checksPass
+    healthCheckPath: /config.js
+    envVars:
+      - key: PORT
+        value: '80'
+      - key: BACKEND_URL
+        sync: false
+      - key: KEYCLOAK_URL
+        fromService:
+          type: web
+          name: matriz-keycloak
+          envVarKey: KC_HOSTNAME

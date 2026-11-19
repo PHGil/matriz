@@ -58,6 +58,32 @@ These entries were written by the assistant from the project record. The develop
 
 Unit, system (integration) and end-to-end tests were added after the verification above; details, commands and results are in [test-plan.md](test-plan.md) and [quality-security-review.md](quality-security-review.md). Latest runs (2026-11-11): backend `./mvnw clean test` 51 tests pass (was 45; six new `TaskTest` cases); `system-tests` 30 tests pass against the `st` backend (run twice); Playwright 2 tests pass (repeated 3 times); `prettier --check` and `ng test` (5) pass. Two review findings are open for the author's decision (F-01, F-02).
 
+## Render + Neon preparation — 2026-11-19
+
+Approved scope: three Render free container services and separate Neon databases (D-04), preserving the existing local stack. Cloud resources were **not** created; no commits were pushed. Setup, provider limits and the remaining public-deployment checklist are in [deployment.md](deployment.md).
+
+| Check | Result |
+| --- | --- |
+| `cd backend && ./mvnw -B -q test` | **55 passed**, 0 failures/errors, PostgreSQL 18 via Dev Services. Includes six simultaneous first-login requests, preserving a disabled projection, updating a disabled user's profile without reactivation, and rejecting a different identity with the same email. |
+| Frontend, Node 26: `npx prettier --check .`, `npx ng build`, `npx ng test --watch=false` | Formatting/build pass; **5 tests passed**. |
+| `node --test keycloak/production-realm.test.mjs` (also through CI's Node 26 container command) | **3 passed**: no human/demo accounts or password-grant client in production; exact origin placeholders/PKCE; approved session rules and local realm preserved. |
+| `docker build` for backend, frontend and production Keycloak | All three images build successfully. |
+| `docker compose --env-file .env.example --profile app config -q` | Pass; local Compose configuration still valid. |
+| Backend without `DB_JDBC_URL` | A separate container using only `DB_HOST`, `DB_PORT` and `DB_NAME` reaches readiness `UP`; original URL fallback preserved. |
+| `render.yaml` against Render's official JSON schema | Pass, using Python `jsonschema`; all three services explicitly `plan: free`. This does not replace account-side Blueprint validation or deployment. |
+| `npx --offline --yes @redocly/cli@2.72.0 lint openapi.yaml` | Pass with two existing warnings: missing license metadata and the local-development server URL. |
+| Frontend runtime configuration | Local default accepted; trailing-slash, non-HTTP(S) and multiline origins rejected with startup failure. `/config.js` contains configured origin and `Cache-Control: no-store`; SPA deep links work. |
+| Isolated production-image smoke, fresh PostgreSQL databases, local TLS proxy | Keycloak uses production startup, public-style HTTPS hostname and imported realm. Discovery issuer/authorization endpoint use HTTPS. Quarkus readiness returns `UP`; frontend proxies to HTTPS backend with certificate verification; unauthenticated `/api/v1/projects` returns `401`. Both Keycloak and application JDBC connections confirmed TLS in `pg_stat_ssl`, using `sslmode=verify-full` and Java trust. |
+| Chromium through that isolated HTTPS stack | New account logs in with Authorization Code + PKCE; `/auth/me` returns `200`; creates a project and task, task appears in "Por fazer", logs out to Keycloak. Repeated login after restarting Keycloak/backend finds the same project/task and can log out again. |
+| Java container memory limits | Both ran with Docker `--memory=512m`; observed after the final small browser smoke: Keycloak **456.2 MiB**, backend **221.9 MiB**. This is not a load test or a Render resource/performance guarantee. |
+| Cleanup | Isolated smoke containers/network and generated certificate/private-key/truststore files removed; existing development services/data not used. |
+
+**Issue found and fixed (US-01, ADR-09).** A completely new user triggered concurrent dashboard and `/auth/me` requests before directory sync. Both tried to insert the same projection, causing a duplicate-key `500` and missing user name. Human approval expanded the deployment work to fix it: both login and sync now use atomic insert-if-absent, return the persisted identity and never overwrite an existing projection with a newly constructed active user. Conflicts for an email belonging to another identity remain explicit (`409`); no account merging. Backend regressions and the fresh-database browser flow above pass.
+
+The TLS smoke used generated local certificates trusted explicitly by Java/nginx/curl. Chromium ignored the test certificate's trust error only in that isolated test context; production images do not disable certificate verification. The local simulation validates wiring, not Render's certificates, 0.1-CPU startup timing, public-network behaviour or Neon's real endpoints.
+
+**Still pending:** actual Render/Neon setup, account-side Blueprint validation, public URLs and HTTP→HTTPS redirects, real Neon CA/connectivity/role permissions, sustained memory/load/free-quota behaviour, public two-user membership checks and data persistence after a cloud redeploy. GitHub Actions changes have not run remotely; the full existing system/E2E suites were not rerun in this task (the isolated Chromium production-image smoke above was run). No cloud acceptance results are claimed.
+
 ## Limitations
 
 - Not run: GitHub Actions pipeline and the OpenAPI lint step; start-up of the app from a clean clone (`.env`, `docker compose`, `quarkus:dev`, `npm start`). A clean `git clone` did pass `./mvnw clean test` (45), `npm ci`, `prettier --check`, `ng build` and `ng test` (5); the 8 h inactivity logout and token expiry while editing (EC-07) were not exercised either.

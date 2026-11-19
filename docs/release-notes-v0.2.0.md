@@ -7,14 +7,15 @@ Status: **candidate**, not published. Proposed tag `v0.2.0` (Semantic Versioning
 - **Run the whole app with one command.** `docker compose --profile app up -d --build` builds and starts PostgreSQL, Keycloak, backend and frontend; open <http://localhost:4200>. The images build from source, so no local Java or Node is needed for this mode.
 - **Safer pipeline.** CI runs on pushes to `master` and on pull requests; Docker images are built only after the backend, frontend, stack and OpenAPI checks pass.
 - **More tests.** API system tests against a real stack and a Playwright end-to-end test of the main flow, also run in CI.
+- **Cloud deployment preparation.** Render Blueprint, production Keycloak image and Neon TLS instructions in [deployment.md](deployment.md). Public deployment is still pending.
 
-No functional change for users, no API change ([openapi.yaml](../openapi.yaml)) and no database migration.
+No new user-facing features, endpoints or database migration. Concurrent first-login requests now create one user projection instead of failing; an email owned by a different identity is reported explicitly as a conflict ([openapi.yaml](../openapi.yaml)).
 
 ## Upgrade notes
 
 - `docker-compose.yml` is now `compose.yaml`. Plain `docker compose up -d` still starts only PostgreSQL and Keycloak for development.
 - Keycloak now has `KC_HOSTNAME=http://localhost:8180`; recreate it with `docker compose up -d keycloak`. Existing data is kept.
-- Backend container variables are unchanged: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_URL`, `MATRIZ_BACKEND_CLIENT_SECRET`; frontend: `BACKEND_URL`.
+- Backend adds optional `DB_JDBC_URL`; existing `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `KEYCLOAK_URL`, `MATRIZ_BACKEND_CLIENT_SECRET` remain supported. Frontend adds runtime `KEYCLOAK_URL` alongside `BACKEND_URL`; local defaults are unchanged.
 
 ## Verification
 
@@ -28,9 +29,10 @@ No functional change for users, no API change ([openapi.yaml](../openapi.yaml)) 
 | Logs                                                                        | No errors; Keycloak warnings only (deprecated default features, "Full scope allowed" on two clients)                                                         |
 | GitHub Actions for the new CI job (Docker build, pull requests)             | Not run yet (commits not pushed)                                                                                                                             |
 
+Deployment-preparation verification (2026-11-19), including the first-login fix, three image builds, HTTPS/TLS simulation and remaining cloud checks: [verification.md](verification.md#render--neon-preparation--2026-11-19).
+
 ## Known limitations
 
-- The Keycloak address used by the browser is fixed at build time (`http://localhost:8180` in [app-settings.ts](../frontend/src/app/app-settings.ts)), and the realm only allows `http://localhost:4200` as redirect URI. The images therefore run only locally until the deployment (D-04: Render + Neon) is configured.
-- Keycloak runs with `start-dev` (HTTP, development mode); not suitable for a public deployment.
-- The realm still contains the local-only test client `matriz-system-tests` (F-01, accepted for local use) and the demo password.
+- Cloud deployment, real Neon connectivity, public HTTPS login/logout and Render memory/quota behaviour still need verification. See [deployment.md](deployment.md).
+- Local Compose intentionally uses `start-dev` and the local realm with demo accounts and the test-only client; only the separate `keycloak/Dockerfile` is intended for Render.
 - Not automated: concurrent edits, token expiry while editing, narrow screens, browsers other than Chromium (see [test-plan.md](test-plan.md#5-decisions-and-limits)).
